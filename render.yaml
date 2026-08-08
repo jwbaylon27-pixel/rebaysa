@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: erp-repuestos-api
+    runtime: docker
+    plan: free
+    dockerContext: .
+    dockerfilePath: ./ERP.API/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:10000
+      - key: Cors__AllowedOrigins
+        sync: false
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
