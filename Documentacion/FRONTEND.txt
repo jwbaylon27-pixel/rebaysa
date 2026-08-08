@@ -1,0 +1,61 @@
+ERP.Frontend
+├── Login
+│
+├── Layout
+│   ├── Sidebar
+│   ├── Header
+│   └── UserMenu
+│
+├── Dashboard
+│   ├── ResumenGeneral
+│   ├── VentasDelDia
+│   ├── StockCritico
+│   └── UltimosMovimientos
+│
+├── Productos
+│   ├── ListaProductos
+│   ├── NuevoProducto
+│   ├── EditarProducto
+│   ├── Categorías
+│   └── Marcas
+│
+├── Inventario
+│   ├── StockActual
+│   ├── Movimientos
+│   ├── Ajustes
+│   └── AlertasStock
+│
+├── Compras
+│   ├── ListaCompras
+│   ├── NuevaCompra
+│   ├── Proveedores
+│   └── CuentasPorPagar
+│
+├── Ventas
+│   ├── ListaVentas
+│   ├── NuevaVenta
+│   ├── Cotizaciones
+│   └── Comprobantes
+│
+├── Kardex
+│   ├── KardexProducto
+│   └── HistorialMovimientos
+│
+├── Clientes
+│   ├── ListaClientes
+│   ├── NuevoCliente
+│   └── Vehículos
+│
+├── Reportes
+│   ├── Ventas
+│   ├── Compras
+│   ├── Inventario
+│   ├── Kardex
+│   └── Clientes
+│
+└── Configuración
+    ├── Usuarios
+    ├── Roles
+    ├── Permisos
+    ├── Empresa
+    └── Parámetros

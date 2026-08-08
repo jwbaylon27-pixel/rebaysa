@@ -1,0 +1,8 @@
+MovimientosInventario.tsx
+KardexFiltros.tsx
+KardexResumen.tsx
+KardexTable.tsx
+KardexDetalleModal.tsx
+ProductoAutocomplete.tsx
+kardexService.ts
+movimientos.css

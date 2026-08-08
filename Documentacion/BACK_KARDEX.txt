@@ -1,0 +1,135 @@
+backend completo del módulo Kardex, con:
+
+El módulo tendrá esta estructura:
+
+ERP.API
+ ├── Controllers
+ │      KardexController.cs
+ │      ProductosController.cs   (Buscar)
+ │      AlmacenesController.cs
+ │      TiposMovimientoController.cs
+ │
+ERP.Application
+ ├── DTOs
+ │      KardexResumenDTO.cs
+ │      KardexMovimientoDTO.cs
+ │      KardexDetalleDTO.cs
+ │      ProductoBusquedaDTO.cs
+ │      AlmacenDTO.cs
+ │      TipoMovimientoDTO.cs
+ │
+ ├── Interfaces
+ │      IKardexService.cs
+ │
+ ├── Services
+ │      KardexService.cs
+ │
+ERP.Infrastructure
+ ├── Interfaces
+ │      IKardexRepository.cs
+ │
+ ├── Repositories
+ │      KardexRepository.cs
+
+Los endpoints serán:
+
+GET /api/kardex/resumen
+GET /api/kardex/movimientos
+GET /api/kardex/detalle/{id}
+GET /api/kardex/exportar/excel
+GET /api/kardex/exportar/pdf
+GET /api/productos/buscar
+GET /api/almacenes
+GET /api/tiposmovimiento
+
+
+El orden será:
+
+DTOs.
+Repository.
+Service.
+Controllers.
+Exportar Excel y PDF.
+Registro en Program.cs (inyección de dependencias).
+
+ERP.Application
+ └── DTOs
+      ├── KardexResumenDTO.cs
+      ├── KardexMovimientoDTO.cs
+      ├── KardexDetalleDTO.cs
+      ├── ProductoBusquedaDTO.cs
+      ├── AlmacenDTO.cs
+      └── TipoMovimientoDTO.cs
+
+
+
+
+ERP.Application
+│
+├── DTOs
+│     KardexResumenDto.cs
+│     KardexMovimientoDto.cs
+│     KardexDetalleDto.cs
+│
+├── Interfaces
+│     IKardexRepository.cs
+│     IKardexService.cs
+│
+└── Services
+      KardexService.cs
+
+ERP.Infrastructure
+│
+└── Repositories
+      KardexRepository.cs
+
+ERP.API
+│
+├── Controllers
+│      KardexController.cs
+│
+└── Program.cs
+
+
+KardexController
+        │
+        ▼
+IKardexService
+        │
+        ▼
+KardexService : ERP.Application/Services/KardexService.cs
+        │
+        ▼
+IKardexRepository : ERP.Application/Interfaces/IKardexRepository.cs
+        │
+        ▼
+KardexRepository
+        │
+        ▼
+SQL Server 2014
+
+
+
+
+Contenido
+✅ IKardexRepository (final)
+✅ KardexRepository (consultas SQL Server 2014 + Dapper)
+✅ IKardexService
+✅ KardexService
+✅ KardexController
+✅ DTOs definitivos
+✅ Exportar Excel (ClosedXML)
+✅ Exportar PDF (QuestPDF 2026)
+✅ Registro de DI (Program.cs)
+✅ Endpoints para Frontend React
+✅ Índices SQL para optimizar Kardex
+✅ Ajustes finales del Frontend (React)
+
+versión adaptada exactamente a las tablas:
+
+Productos
+Inventario
+Kardex
+KardexDetalle
+Almacenes
+

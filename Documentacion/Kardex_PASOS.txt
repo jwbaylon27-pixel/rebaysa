@@ -1,0 +1,13 @@
+1.Modelo TypeScript + servicios API.
+2.Componente principal MovimientosInventario.tsx.
+3.Autocomplete del producto y panel de resumen.
+4.Grid profesional con filtros, paginación y ordenamiento.
+5.Modal de detalle del movimiento (KardexDetalle).
+6.CSS completo con el mismo estilo de la imagen.
+
+C:\Proyectos\ERP_REPUESTOS\ERP.Frontend\src\services
+
+
+src\services
+src\services\api.ts
+src\services\kardexService.ts

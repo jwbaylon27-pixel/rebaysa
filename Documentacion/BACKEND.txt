@@ -1,0 +1,59 @@
+ERP.API
+├── Auth
+│   ├── Login
+│   ├── Registro
+│   ├── RefreshToken
+│   └── RecuperarPassword
+│
+├── Seguridad
+│   ├── Usuarios
+│   ├── Roles
+│   ├── Permisos
+│   └── UsuarioRoles
+│
+├── Catálogos
+│   ├── Productos
+│   ├── Categorías
+│   ├── Marcas
+│   ├── UnidadesMedida
+│   ├── Clientes
+│   ├── Proveedores
+│   └── Vehículos
+│
+├── Inventario
+│   ├── Stock
+│   ├── MovimientosInventario
+│   ├── Kardex
+│   ├── AjustesInventario
+│   └── AlertasStock
+│
+├── Compras
+│   ├── OrdenesCompra
+│   ├── Compras
+│   ├── DetalleCompra
+│   └── CuentasPorPagar
+│
+├── Ventas
+│   ├── Cotizaciones
+│   ├── Ventas
+│   ├── DetalleVenta
+│   ├── Comprobantes
+│   └── CuentasPorCobrar
+│
+├── Dashboard
+│   ├── ResumenVentas
+│   ├── ResumenCompras
+│   ├── ProductosBajoStock
+│   └── Indicadores
+│
+├── Alertas
+│   ├── StockMinimo
+│   ├── Vencimientos
+│   └── Pendientes
+│
+└── Reportes
+    ├── ReporteVentas
+    ├── ReporteCompras
+    ├── ReporteInventario
+    ├── ReporteKardex
+    └── ReporteClientes

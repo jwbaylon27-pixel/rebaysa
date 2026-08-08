@@ -1,0 +1,14 @@
+BEGIN TRAN
+
+1. Registrar Venta (cabecera)
+2. Registrar VentaDetalle
+3. Descontar Stock
+4. Calcular SubTotal, IGV y Total
+5. Registrar AsientoContable
+6. Registrar AsientoDetalle
+7. Actualizar Ventas.AsientoId
+
+COMMIT
+
+Si ocurre cualquier error
+ROLLBACK

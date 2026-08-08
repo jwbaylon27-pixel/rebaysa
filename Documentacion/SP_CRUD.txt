@@ -1,0 +1,969 @@
+USE ERP_REPUESTOS;
+GO
+
+/*==============================================================
+SP LOGIN USUARIO
+==============================================================*/
+
+IF OBJECT_ID('sp_LoginUsuario', 'P') IS NOT NULL
+    DROP PROCEDURE sp_LoginUsuario;
+GO
+
+CREATE PROCEDURE sp_LoginUsuario
+(
+    @Usuario VARCHAR(50)
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SELECT
+        U.Id,
+        U.NombreCompleto,
+        U.Usuario,
+        U.Email,
+        U.PasswordHash,
+        R.Nombre AS Rol
+    FROM Usuarios U
+    INNER JOIN Roles R
+        ON U.RolId = R.Id
+    WHERE U.Usuario = @Usuario
+    AND U.Activo = 1;
+
+END
+GO
+
+/*==============================================================
+SP PRODUCTOS LISTAR
+==============================================================*/
+
+IF OBJECT_ID('sp_Productos_Listar', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Productos_Listar;
+GO
+
+CREATE PROCEDURE sp_Productos_Listar
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SELECT
+        P.Id,
+        P.Codigo,
+        P.Nombre,
+        P.Descripcion,
+
+        C.Nombre AS Categoria,
+        M.Nombre AS Marca,
+
+        P.PrecioCompra,
+        P.PrecioVenta,
+
+        ISNULL(SUM(I.StockActual),0) AS Stock,
+
+        P.StockMinimo,
+        P.Activo
+
+    FROM Productos P
+    INNER JOIN Categorias C
+        ON P.CategoriaId = C.Id
+    INNER JOIN Marcas M
+        ON P.MarcaId = M.Id
+    LEFT JOIN Inventario I
+        ON P.Id = I.ProductoId
+
+    GROUP BY
+        P.Id,
+        P.Codigo,
+        P.Nombre,
+        P.Descripcion,
+        C.Nombre,
+        M.Nombre,
+        P.PrecioCompra,
+        P.PrecioVenta,
+        P.StockMinimo,
+        P.Activo
+
+    ORDER BY P.Nombre;
+
+END
+GO
+
+/*==============================================================
+SP PRODUCTO REGISTRAR
+==============================================================*/
+
+IF OBJECT_ID('sp_Producto_Registrar', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Producto_Registrar;
+GO
+
+CREATE PROCEDURE sp_Producto_Registrar
+(
+    @CategoriaId INT,
+    @MarcaId INT,
+    @Codigo VARCHAR(50),
+    @Nombre VARCHAR(200),
+    @Descripcion VARCHAR(500),
+    @PrecioCompra DECIMAL(18,2),
+    @PrecioVenta DECIMAL(18,2),
+    @StockMinimo INT
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    INSERT INTO Productos
+    (
+        CategoriaId,
+        MarcaId,
+        Codigo,
+        Nombre,
+        Descripcion,
+        PrecioCompra,
+        PrecioVenta,
+        StockMinimo
+    )
+    VALUES
+    (
+        @CategoriaId,
+        @MarcaId,
+        @Codigo,
+        @Nombre,
+        @Descripcion,
+        @PrecioCompra,
+        @PrecioVenta,
+        @StockMinimo
+    );
+
+    SELECT SCOPE_IDENTITY() AS ProductoId;
+
+END
+GO
+
+/*==============================================================
+SP PRODUCTO ACTUALIZAR
+==============================================================*/
+
+IF OBJECT_ID('sp_Producto_Actualizar', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Producto_Actualizar;
+GO
+
+CREATE PROCEDURE sp_Producto_Actualizar
+(
+    @Id INT,
+    @CategoriaId INT,
+    @MarcaId INT,
+    @Codigo VARCHAR(50),
+    @Nombre VARCHAR(200),
+    @Descripcion VARCHAR(500),
+    @PrecioCompra DECIMAL(18,2),
+    @PrecioVenta DECIMAL(18,2),
+    @StockMinimo INT
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    UPDATE Productos
+    SET
+        CategoriaId = @CategoriaId,
+        MarcaId = @MarcaId,
+        Codigo = @Codigo,
+        Nombre = @Nombre,
+        Descripcion = @Descripcion,
+        PrecioCompra = @PrecioCompra,
+        PrecioVenta = @PrecioVenta,
+        StockMinimo = @StockMinimo
+    WHERE Id = @Id;
+
+END
+GO
+
+/*==============================================================
+SP PRODUCTO ELIMINAR LOGICO
+==============================================================*/
+
+IF OBJECT_ID('sp_Producto_Eliminar', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Producto_Eliminar;
+GO
+
+CREATE PROCEDURE sp_Producto_Eliminar
+(
+    @Id INT
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    UPDATE Productos
+    SET Activo = 0
+    WHERE Id = @Id;
+
+END
+GO
+
+/*==============================================================
+SP CLIENTE REGISTRAR
+==============================================================*/
+
+IF OBJECT_ID('sp_Cliente_Registrar', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Cliente_Registrar;
+GO
+
+CREATE PROCEDURE sp_Cliente_Registrar
+(
+    @TipoDocumento VARCHAR(10),
+    @NumeroDocumento VARCHAR(20),
+    @Nombres VARCHAR(150),
+    @Direccion VARCHAR(250),
+    @Telefono VARCHAR(20),
+    @Email VARCHAR(150)
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    INSERT INTO Clientes
+    (
+        TipoDocumento,
+        NumeroDocumento,
+        Nombres,
+        Direccion,
+        Telefono,
+        Email
+    )
+    VALUES
+    (
+        @TipoDocumento,
+        @NumeroDocumento,
+        @Nombres,
+        @Direccion,
+        @Telefono,
+        @Email
+    );
+
+    SELECT SCOPE_IDENTITY() AS ClienteId;
+
+END
+GO
+
+/*==============================================================
+SP CLIENTES LISTAR
+==============================================================*/
+
+IF OBJECT_ID('sp_Clientes_Listar', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Clientes_Listar;
+GO
+
+CREATE PROCEDURE sp_Clientes_Listar
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SELECT
+        Id,
+        TipoDocumento,
+        NumeroDocumento,
+        Nombres,
+        Direccion,
+        Telefono,
+        Email,
+        Saldo,
+        Activo
+    FROM Clientes
+    WHERE Activo = 1
+    ORDER BY Nombres;
+
+END
+GO
+
+/*==============================================================
+SP PROVEEDOR REGISTRAR
+==============================================================*/
+
+IF OBJECT_ID('sp_Proveedor_Registrar', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Proveedor_Registrar;
+GO
+
+CREATE PROCEDURE sp_Proveedor_Registrar
+(
+    @TipoDocumento VARCHAR(10),
+    @NumeroDocumento VARCHAR(20),
+    @RazonSocial VARCHAR(200),
+    @Direccion VARCHAR(250),
+    @Telefono VARCHAR(20),
+    @Email VARCHAR(150)
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    INSERT INTO Proveedores
+    (
+        TipoDocumento,
+        NumeroDocumento,
+        RazonSocial,
+        Direccion,
+        Telefono,
+        Email
+    )
+    VALUES
+    (
+        @TipoDocumento,
+        @NumeroDocumento,
+        @RazonSocial,
+        @Direccion,
+        @Telefono,
+        @Email
+    );
+
+END
+GO
+
+/*==============================================================
+SP COMPRAS LISTAR
+==============================================================*/
+
+IF OBJECT_ID('sp_Compras_Listar', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Compras_Listar;
+GO
+
+CREATE PROCEDURE sp_Compras_Listar
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SELECT
+        C.Id,
+        C.Fecha,
+
+        P.RazonSocial AS Proveedor,
+
+        U.NombreCompleto AS Usuario,
+
+        C.TipoDocumento,
+        C.Serie,
+        C.NumeroDocumento,
+
+        C.Total,
+        C.Estado
+
+    FROM Compras C
+    INNER JOIN Proveedores P
+        ON C.ProveedorId = P.Id
+    INNER JOIN Usuarios U
+        ON C.UsuarioId = U.Id
+
+    ORDER BY C.Fecha DESC;
+
+END
+GO
+
+/*==============================================================
+SP COMPRA REGISTRAR
+==============================================================*/
+
+IF OBJECT_ID('sp_Compra_Registrar', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Compra_Registrar;
+GO
+
+CREATE PROCEDURE sp_Compra_Registrar
+(
+    @ProveedorId INT,
+    @UsuarioId INT,
+    @TipoDocumento VARCHAR(20),
+    @Serie VARCHAR(10),
+    @NumeroDocumento VARCHAR(20),
+    @SubTotal DECIMAL(18,2),
+    @IGV DECIMAL(18,2),
+    @Total DECIMAL(18,2),
+    @ProductoId INT,
+    @AlmacenId INT,
+    @Cantidad INT,
+    @PrecioUnitario DECIMAL(18,2)
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+
+        BEGIN TRANSACTION;
+
+        DECLARE @CompraId INT;
+        DECLARE @StockAnterior INT;
+        DECLARE @StockNuevo INT;
+
+        INSERT INTO Compras
+        (
+            ProveedorId,
+            UsuarioId,
+            TipoDocumento,
+            Serie,
+            NumeroDocumento,
+            SubTotal,
+            IGV,
+            Total
+        )
+        VALUES
+        (
+            @ProveedorId,
+            @UsuarioId,
+            @TipoDocumento,
+            @Serie,
+            @NumeroDocumento,
+            @SubTotal,
+            @IGV,
+            @Total
+        );
+
+        SET @CompraId = SCOPE_IDENTITY();
+
+        INSERT INTO CompraDetalle
+        (
+            CompraId,
+            ProductoId,
+            Cantidad,
+            PrecioUnitario,
+            Total
+        )
+        VALUES
+        (
+            @CompraId,
+            @ProductoId,
+            @Cantidad,
+            @PrecioUnitario,
+            @Cantidad * @PrecioUnitario
+        );
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM Inventario
+            WHERE ProductoId = @ProductoId
+            AND AlmacenId = @AlmacenId
+        )
+        BEGIN
+
+            SELECT @StockAnterior = StockActual
+            FROM Inventario
+            WHERE ProductoId = @ProductoId
+            AND AlmacenId = @AlmacenId;
+
+            UPDATE Inventario
+            SET
+                StockActual = StockActual + @Cantidad,
+                UltimaActualizacion = GETDATE()
+            WHERE ProductoId = @ProductoId
+            AND AlmacenId = @AlmacenId;
+
+        END
+        ELSE
+        BEGIN
+
+            SET @StockAnterior = 0;
+
+            INSERT INTO Inventario
+            (
+                ProductoId,
+                AlmacenId,
+                StockActual
+            )
+            VALUES
+            (
+                @ProductoId,
+                @AlmacenId,
+                @Cantidad
+            );
+
+        END
+
+        SET @StockNuevo = @StockAnterior + @Cantidad;
+
+        INSERT INTO Kardex
+        (
+            ProductoId,
+            AlmacenId,
+            TipoMovimiento,
+            Referencia,
+            ReferenciaId,
+            Cantidad,
+            StockAnterior,
+            StockNuevo,
+            CostoUnitario,
+            UsuarioId
+        )
+        VALUES
+        (
+            @ProductoId,
+            @AlmacenId,
+            'COMPRA',
+            'COMPRA',
+            @CompraId,
+            @Cantidad,
+            @StockAnterior,
+            @StockNuevo,
+            @PrecioUnitario,
+            @UsuarioId
+        );
+
+        COMMIT TRANSACTION;
+
+        SELECT @CompraId AS CompraId;
+
+    END TRY
+
+    BEGIN CATCH
+
+        ROLLBACK TRANSACTION;
+
+        DECLARE @MensajeError NVARCHAR(4000);
+        SET @MensajeError = ERROR_MESSAGE();
+
+        RAISERROR(@MensajeError,16,1);
+
+    END CATCH
+
+END
+GO
+
+/*==============================================================
+SP VENTA REGISTRAR
+==============================================================*/
+
+IF OBJECT_ID('sp_Venta_Registrar', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Venta_Registrar;
+GO
+
+CREATE PROCEDURE sp_Venta_Registrar
+(
+    @ClienteId INT,
+    @UsuarioId INT,
+    @TipoDocumento VARCHAR(20),
+    @Serie VARCHAR(10),
+    @NumeroDocumento VARCHAR(20),
+    @SubTotal DECIMAL(18,2),
+    @IGV DECIMAL(18,2),
+    @Total DECIMAL(18,2),
+    @ProductoId INT,
+    @AlmacenId INT,
+    @Cantidad INT,
+    @PrecioUnitario DECIMAL(18,2)
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+
+        BEGIN TRANSACTION;
+
+        DECLARE @VentaId INT;
+        DECLARE @StockActual INT;
+        DECLARE @StockNuevo INT;
+
+        SELECT @StockActual = StockActual
+        FROM Inventario
+        WHERE ProductoId = @ProductoId
+        AND AlmacenId = @AlmacenId;
+
+        IF @StockActual < @Cantidad
+        BEGIN
+            RAISERROR('Stock insuficiente.',16,1);
+            RETURN;
+        END
+
+        INSERT INTO Ventas
+        (
+            ClienteId,
+            UsuarioId,
+            TipoDocumento,
+            Serie,
+            NumeroDocumento,
+            SubTotal,
+            IGV,
+            Total
+        )
+        VALUES
+        (
+            @ClienteId,
+            @UsuarioId,
+            @TipoDocumento,
+            @Serie,
+            @NumeroDocumento,
+            @SubTotal,
+            @IGV,
+            @Total
+        );
+
+        SET @VentaId = SCOPE_IDENTITY();
+
+        INSERT INTO VentaDetalle
+        (
+            VentaId,
+            ProductoId,
+            Cantidad,
+            PrecioUnitario,
+            Total
+        )
+        VALUES
+        (
+            @VentaId,
+            @ProductoId,
+            @Cantidad,
+            @PrecioUnitario,
+            @Cantidad * @PrecioUnitario
+        );
+
+        UPDATE Inventario
+        SET
+            StockActual = StockActual - @Cantidad,
+            UltimaActualizacion = GETDATE()
+        WHERE ProductoId = @ProductoId
+        AND AlmacenId = @AlmacenId;
+
+        SET @StockNuevo = @StockActual - @Cantidad;
+
+        INSERT INTO Kardex
+        (
+            ProductoId,
+            AlmacenId,
+            TipoMovimiento,
+            Referencia,
+            ReferenciaId,
+            Cantidad,
+            StockAnterior,
+            StockNuevo,
+            CostoUnitario,
+            UsuarioId
+        )
+        VALUES
+        (
+            @ProductoId,
+            @AlmacenId,
+            'VENTA',
+            'VENTA',
+            @VentaId,
+            @Cantidad,
+            @StockActual,
+            @StockNuevo,
+            @PrecioUnitario,
+            @UsuarioId
+        );
+
+        COMMIT TRANSACTION;
+
+        SELECT @VentaId AS VentaId;
+
+    END TRY
+
+    BEGIN CATCH
+
+        ROLLBACK TRANSACTION;
+
+        DECLARE @MensajeError NVARCHAR(4000);
+        SET @MensajeError = ERROR_MESSAGE();
+
+        RAISERROR(@MensajeError,16,1);
+
+    END CATCH
+
+END
+GO
+
+/*==============================================================
+SP VENTAS LISTAR
+==============================================================*/
+
+IF OBJECT_ID('sp_Ventas_Listar', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Ventas_Listar;
+GO
+
+CREATE PROCEDURE sp_Ventas_Listar
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SELECT
+        V.Id,
+        V.Fecha,
+
+        C.Nombres AS Cliente,
+
+        U.NombreCompleto AS Usuario,
+
+        V.TipoDocumento,
+        V.Serie,
+        V.NumeroDocumento,
+
+        V.Total,
+        V.Estado
+
+    FROM Ventas V
+    INNER JOIN Clientes C
+        ON V.ClienteId = C.Id
+    INNER JOIN Usuarios U
+        ON V.UsuarioId = U.Id
+
+    ORDER BY V.Fecha DESC;
+
+END
+GO
+
+/*==============================================================
+SP KARDEX PRODUCTO
+==============================================================*/
+
+IF OBJECT_ID('sp_Kardex_Producto', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Kardex_Producto;
+GO
+
+CREATE PROCEDURE sp_Kardex_Producto
+(
+    @ProductoId INT
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SELECT
+        K.Id,
+
+        P.Nombre AS Producto,
+
+        A.Nombre AS Almacen,
+
+        K.TipoMovimiento,
+
+        K.Referencia,
+        K.ReferenciaId,
+
+        K.Cantidad,
+
+        K.StockAnterior,
+        K.StockNuevo,
+
+        K.CostoUnitario,
+
+        K.Fecha
+
+    FROM Kardex K
+    INNER JOIN Productos P
+        ON K.ProductoId = P.Id
+    INNER JOIN Almacenes A
+        ON K.AlmacenId = A.Id
+
+    WHERE K.ProductoId = @ProductoId
+
+    ORDER BY K.Fecha DESC;
+
+END
+GO
+
+/*==============================================================
+SP PRODUCTOS STOCK BAJO
+==============================================================*/
+
+IF OBJECT_ID('sp_Productos_StockBajo', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Productos_StockBajo;
+GO
+
+CREATE PROCEDURE sp_Productos_StockBajo
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SELECT
+        P.Id,
+        P.Codigo,
+        P.Nombre,
+
+        ISNULL(SUM(I.StockActual),0) AS Stock,
+
+        P.StockMinimo
+
+    FROM Productos P
+    LEFT JOIN Inventario I
+        ON P.Id = I.ProductoId
+
+    GROUP BY
+        P.Id,
+        P.Codigo,
+        P.Nombre,
+        P.StockMinimo
+
+    HAVING ISNULL(SUM(I.StockActual),0) <= P.StockMinimo
+
+    ORDER BY Stock ASC;
+
+END
+GO
+
+/*==============================================================
+SP DASHBOARD GENERAL
+==============================================================*/
+
+IF OBJECT_ID('sp_Dashboard_General', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Dashboard_General;
+GO
+
+CREATE PROCEDURE sp_Dashboard_General
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SELECT
+        (SELECT COUNT(*) FROM Productos) AS TotalProductos,
+
+        (SELECT COUNT(*) FROM Clientes) AS TotalClientes,
+
+        (SELECT COUNT(*) FROM Ventas) AS TotalVentas,
+
+        (SELECT ISNULL(SUM(Total),0) FROM Ventas) AS TotalIngresos,
+
+        (SELECT ISNULL(SUM(Total),0) FROM Compras) AS TotalCompras;
+
+END
+GO
+
+/*==============================================================
+SP PRODUCTOS MAS VENDIDOS
+==============================================================*/
+
+IF OBJECT_ID('sp_Reporte_ProductosMasVendidos', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Reporte_ProductosMasVendidos;
+GO
+
+CREATE PROCEDURE sp_Reporte_ProductosMasVendidos
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SELECT TOP 10
+        P.Nombre,
+
+        SUM(VD.Cantidad) AS CantidadVendida,
+
+        SUM(VD.Total) AS TotalVendido
+
+    FROM VentaDetalle VD
+    INNER JOIN Productos P
+        ON VD.ProductoId = P.Id
+
+    GROUP BY P.Nombre
+
+    ORDER BY CantidadVendida DESC;
+
+END
+GO
+
+/*==============================================================
+SP CLIENTES FRECUENTES
+==============================================================*/
+
+IF OBJECT_ID('sp_Reporte_ClientesFrecuentes', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Reporte_ClientesFrecuentes;
+GO
+
+CREATE PROCEDURE sp_Reporte_ClientesFrecuentes
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SELECT TOP 10
+        C.Nombres,
+
+        COUNT(V.Id) AS Compras,
+
+        SUM(V.Total) AS TotalComprado
+
+    FROM Ventas V
+    INNER JOIN Clientes C
+        ON V.ClienteId = C.Id
+
+    GROUP BY C.Nombres
+
+    ORDER BY TotalComprado DESC;
+
+END
+GO
+
+/*==============================================================
+SP ALERTAS PENDIENTES
+==============================================================*/
+
+IF OBJECT_ID('sp_Alertas_Pendientes', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Alertas_Pendientes;
+GO
+
+CREATE PROCEDURE sp_Alertas_Pendientes
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    SELECT
+        A.Id,
+
+        C.Nombres,
+
+        A.TipoAlerta,
+        A.Titulo,
+        A.Mensaje,
+
+        A.FechaProgramada,
+        A.MedioEnvio
+
+    FROM AlertasClientes A
+    INNER JOIN Clientes C
+        ON A.ClienteId = C.Id
+
+    WHERE A.Enviado = 0
+    AND A.FechaProgramada <= GETDATE()
+
+    ORDER BY A.FechaProgramada;
+
+END
+GO
+
+/*==============================================================
+SP ALERTA MARCAR ENVIADA
+==============================================================*/
+
+IF OBJECT_ID('sp_Alerta_MarcarEnviada', 'P') IS NOT NULL
+    DROP PROCEDURE sp_Alerta_MarcarEnviada;
+GO
+
+CREATE PROCEDURE sp_Alerta_MarcarEnviada
+(
+    @AlertaId INT
+)
+AS
+BEGIN
+
+    SET NOCOUNT ON;
+
+    UPDATE AlertasClientes
+    SET
+        Enviado = 1,
+        FechaEnvio = GETDATE()
+    WHERE Id = @AlertaId;
+
+END
+GO

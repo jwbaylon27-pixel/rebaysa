@@ -1,0 +1,16 @@
+# Dependencias y resultados de compilación
+**/node_modules/
+**/bin/
+**/obj/
+**/dist/
+artifacts/
+.vs/
+
+# Configuración y secretos locales
+**/.env
+**/.env.*
+!**/.env.example
+
+# Metadatos locales y copia de trabajo no publicada
+.git-vs-backup/
+ERP.Frontend - copia/
