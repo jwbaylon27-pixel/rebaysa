@@ -1,11 +1,13 @@
 ﻿using ERP.Persistence.Context;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace ERP.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class CategoriasController : ControllerBase
 {
     private readonly ApplicationDbContext _context;

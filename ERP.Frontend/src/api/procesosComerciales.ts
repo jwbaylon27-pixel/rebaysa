@@ -39,7 +39,7 @@ const headers = {
 };
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(url, options);
+  const response = await fetch(url, { ...options, headers: encabezadosAutorizados(options?.headers) });
 
   if (!response.ok) {
     const detail = await response.text();
@@ -71,3 +71,4 @@ export function registrarMovimientoComercial(tipo: TipoProcesoComercial, movimie
   });
 }
 import { apiUrl } from '../config/api';
+import { encabezadosAutorizados } from '../auth';

@@ -1061,3 +1061,212 @@ td span {
     border:1px solid #ccc;
     border-radius:6px;
 }
+
+.login-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.login-card {
+  display: grid;
+  width: min(100%, 410px);
+  gap: 16px;
+  padding: 32px;
+  border: 1px solid rgba(26, 44, 58, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 56px rgba(23, 35, 51, 0.16);
+}
+
+.login-card h1 { font-size: 1.65rem; }
+.login-copy { color: #667386; line-height: 1.45; }
+.login-mark { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 14px; background: #e7f7ee; color: #1f6f62; }
+.login-field { display: flex; align-items: center; gap: 8px; border: 1px solid #c9d4e1; border-radius: 6px; padding-left: 12px; color: #65758a; }
+.login-field input { border: 0; box-shadow: none; }
+.login-submit { width: 100%; margin-top: 4px; }
+.session-summary { display: grid; gap: 3px; padding: 10px; border-radius: 8px; background: #f4f7fa; color: #435166; font-size: 0.76rem; }
+.session-summary span { color: #1f6f62; font-size: 0.68rem; font-weight: 800; }
+.session-summary button { width: fit-content; margin-top: 4px; border: 0; background: transparent; color: #aa3b3b; font-size: 0.74rem; font-weight: 800; padding: 0; }
+
+/* Vista de teléfono: navegación compacta y acciones accesibles sin zoom. */
+@media (max-width: 640px) {
+  body {
+    min-width: 0;
+  }
+
+  .app-layout {
+    display: block;
+    min-height: 0;
+  }
+
+  .module-sidebar {
+    display: block;
+    position: static;
+    height: auto;
+    padding: 8px 10px 10px;
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-brand {
+    justify-content: flex-start;
+    padding: 0 4px 8px;
+  }
+
+  .sidebar-logo {
+    width: 78px;
+  }
+
+  .module-sidebar-title {
+    display: none;
+  }
+
+  .module-nav {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+  }
+
+  .module-link {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 8px 10px;
+  }
+
+  .module-link span {
+    font-size: 0.82rem;
+  }
+
+  .module-link small {
+    display: none;
+  }
+
+  .app-content-column {
+    padding: 12px 10px 24px;
+  }
+
+  .list-toolbar {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .toolbar-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .search-input,
+  .toolbar-actions .primary-button {
+    width: 100%;
+    max-width: none;
+  }
+
+  .inventory-panel .table-wrap {
+    overflow-x: hidden;
+  }
+
+  .inventory-panel table {
+    table-layout: fixed;
+  }
+
+  /* Una tabla de cuatro columnas cabe en pantallas de 320 px. */
+  .inventory-panel th:nth-child(3),
+  .inventory-panel td:nth-child(3),
+  .inventory-panel th:nth-child(5),
+  .inventory-panel td:nth-child(5),
+  .inventory-panel th:nth-child(6),
+  .inventory-panel td:nth-child(6) {
+    display: none;
+  }
+
+  .inventory-panel th:nth-child(1),
+  .inventory-panel td:nth-child(1) {
+    width: 64px;
+  }
+
+  .inventory-panel th:nth-child(2),
+  .inventory-panel td:nth-child(2) {
+    width: auto;
+  }
+
+  .inventory-panel th:nth-child(4),
+  .inventory-panel td:nth-child(4) {
+    width: 68px;
+  }
+
+  .inventory-panel th:nth-child(7),
+  .inventory-panel td:nth-child(7) {
+    width: 82px;
+  }
+
+  .inventory-panel th,
+  .inventory-panel td {
+    padding: 9px 5px;
+    font-size: 0.74rem;
+  }
+
+  .inventory-panel th {
+    font-size: 0.62rem;
+  }
+
+  .inventory-panel td strong {
+    max-width: 100%;
+    font-size: 0.78rem;
+  }
+
+  .inventory-panel .unit-inline {
+    display: none;
+  }
+
+  .inventory-panel .actions {
+    gap: 4px;
+    justify-content: flex-end;
+  }
+
+  .inventory-panel .icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    padding: 5px;
+  }
+
+  .modal-overlay {
+    align-items: flex-end;
+  }
+
+  .modal-producto {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: 14px 14px 0 0;
+    padding: 18px 14px 24px;
+  }
+
+  .modal-header {
+    margin-bottom: 14px;
+  }
+
+  .modal-producto .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .compra-container {
+    padding: 12px;
+  }
+
+  .compra-card {
+    padding: 14px;
+  }
+
+  .compra-header,
+  .kardex-filtros,
+  .kardex-filtros-left {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

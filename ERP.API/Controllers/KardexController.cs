@@ -2,11 +2,13 @@
 using ERP.Application.DTOs.Kardex;
 using ERP.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ERP.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "ADMINISTRADOR,ALMACENERO")]
 public class KardexController : ControllerBase
 {
     private readonly IKardexService _service;

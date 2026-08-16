@@ -15,3 +15,5 @@ services:
         sync: false
       - key: ConnectionStrings__DefaultConnection
         sync: false
+      - key: Jwt__Key
+        sync: false

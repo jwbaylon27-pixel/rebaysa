@@ -2,6 +2,7 @@ using ERP.API.Dtos;
 using ERP.Domain.Entities;
 using ERP.Persistence.Context;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Data;
@@ -10,6 +11,7 @@ namespace ERP.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "ADMINISTRADOR,ALMACENERO")]
 public class ComprasController : ControllerBase
 {
     private readonly ApplicationDbContext _context;

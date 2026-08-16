@@ -1,11 +1,12 @@
 import type { Categorias,Marca,Producto, ProductoForm } from '../types';
 import { apiUrl } from '../config/api';
+import { encabezadosAutorizados } from '../auth';
 
 const headers = {
   'Content-Type': 'application/json',
 };
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(url, options);
+  const response = await fetch(url, { ...options, headers: encabezadosAutorizados(options?.headers) });
 
   if (!response.ok) {
     const detail = await response.text();

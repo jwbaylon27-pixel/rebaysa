@@ -27,6 +27,8 @@ import ProcesoComercial from "./components/ProcesoComercial";
 import SociosNegocio from "./components/SociosNegocio";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import rebaysaTheme from "./theme/rebaysaTheme";
+import Login from './components/Login';
+import { cerrarSesion, guardarSesion, obtenerSesion, type Sesion } from './auth';
 
 const productoInicial: ProductoForm = {
   categoriaId: 1,
@@ -60,6 +62,12 @@ const moduloInicial: ModuleForm = {
 
 const MODULOS_STORAGE_KEY = 'rebaysa.modulos';
 
+const permisosPorRol: Record<Sesion['rol'], string[]> = {
+  ADMINISTRADOR: ['*'],
+  VENDEDOR: ['Dashboard', 'Productos', 'Ventas', 'Clientes'],
+  ALMACENERO: ['Dashboard', 'Productos', 'Compras', 'Kardex', 'Proveedores'],
+};
+
 function cargarModulosIniciales() {
   try {
     const modulosGuardados = localStorage.getItem(MODULOS_STORAGE_KEY);
@@ -92,6 +100,7 @@ function cargarModulosIniciales() {
 }
 
 function App() {
+  const [sesion, setSesion] = useState<Sesion | null>(obtenerSesion);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [socios, setSocios] = useState<SocioNegocio[]>([]);
   const [marcas, setMarcas] = useState<Marca[]>([]);
@@ -111,6 +120,14 @@ function App() {
     () => modulos.find((group) => group.group === 'Frontend')?.modules ?? [],
     [modulos],
   );
+
+  const frontendModulesPermitidos = useMemo(() => {
+    if (!sesion) return [];
+    const permisos = permisosPorRol[sesion.rol];
+    return frontendModules.filter((module) => permisos.includes('*') || permisos.includes(module.name));
+  }, [frontendModules, sesion]);
+
+  const puedeGestionarInventario = sesion?.rol === 'ADMINISTRADOR' || sesion?.rol === 'ALMACENERO';
 
   const backendModules = useMemo(
     () => modulos.find((group) => group.group === 'Backend')?.modules ?? [],
@@ -169,6 +186,12 @@ const productosFiltrados = useMemo(() => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [moduloActivo]);
+
+  useEffect(() => {
+    if (sesion && !frontendModulesPermitidos.some((module) => module.name === moduloActivo)) {
+      setModuloActivo(frontendModulesPermitidos[0]?.name ?? 'Dashboard');
+    }
+  }, [sesion, frontendModulesPermitidos, moduloActivo]);
 
   async function cargarProductos() {
     try {
@@ -445,7 +468,7 @@ function renderProductos() {
               onChange={(e) => setBusqueda(e.target.value)}
             />
 
-            <button
+            {puedeGestionarInventario && <button
               type="button"
               className="primary-button"
               onClick={() => {
@@ -455,7 +478,7 @@ function renderProductos() {
             >
               <Plus size={18} />
               Nuevo Producto
-            </button>
+            </button>}
 
           </div>
 
@@ -519,21 +542,21 @@ function renderProductos() {
 
                     <td>
                       <div className="actions">
-                        <button
+                        {puedeGestionarInventario && <button
                           className="icon-btn edit"
                           type="button"
                           onClick={() => editar(producto)}
                         >
                           <Pencil size={18} />
-                        </button>
+                        </button>}
 
-                        <button
+                        {puedeGestionarInventario && <button
                           className="icon-btn delete"
                           type="button"
                           onClick={() => void desactivar(producto.id)}
                         >
                           <Trash2 size={18} />
-                        </button>
+                        </button>}
                       </div>
                     </td>
                   </tr>
@@ -746,6 +769,10 @@ function renderProductos() {
     return renderModuloPlaneado();
   }
 
+  if (!sesion) {
+    return <Login onAuthenticated={(nuevaSesion) => { guardarSesion(nuevaSesion); setSesion(nuevaSesion); }} />;
+  }
+
   return (
     <ThemeProvider theme={rebaysaTheme}>
     <CssBaseline />
@@ -760,8 +787,13 @@ function renderProductos() {
             <span>ERP</span>
             <strong>Modulos</strong>
           </div>
+          <div className="session-summary">
+            <strong>{sesion.nombreCompleto}</strong>
+            <span>{sesion.rol}</span>
+            <button type="button" onClick={() => { cerrarSesion(); setSesion(null); }}>Cerrar sesión</button>
+          </div>
           <nav className="module-nav" aria-label="Modulos principales">
-            {frontendModules.map((module) => (
+            {frontendModulesPermitidos.map((module) => (
               <button
                 className={module.name === moduloActivo ? 'module-link active' : 'module-link'}
                 key={module.name}

@@ -1,11 +1,13 @@
 ﻿using ERP.Application.Interfaces;
 using ERP.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ERP.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ProductosController : ControllerBase
 {
     private readonly IProductoRepository _repository;
@@ -51,6 +53,7 @@ public class ProductosController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "ADMINISTRADOR,ALMACENERO")]
     public async Task<IActionResult> Crear(Producto producto)
     {
         var id = await _repository.CrearAsync(producto);
@@ -59,6 +62,7 @@ public class ProductosController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize(Roles = "ADMINISTRADOR,ALMACENERO")]
     public async Task<IActionResult> Actualizar(Producto producto)
     {
         await _repository.ActualizarAsync(producto);
@@ -67,6 +71,7 @@ public class ProductosController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "ADMINISTRADOR,ALMACENERO")]
     public async Task<IActionResult> Eliminar(int id)
     {
         await _repository.EliminarAsync(id);
