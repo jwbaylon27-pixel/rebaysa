@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using ERP.Persistence.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<IKardexRepository, KardexRepository>();
 builder.Services.AddScoped<IKardexService, KardexService>();
+
+builder.Services.AddScoped<IReportesRepository, ReportesRepository>();
+builder.Services.AddScoped<IReportesService, ReportesService>();
+
+// Tipo de cambio diario (usado por Compras, Ventas y Liquidacion de Costo)
+builder.Services.AddScoped<ITipoCambioService, TipoCambioService>();
+
+// Modulo Liquidacion de Costo (Landed Cost)
+builder.Services.AddScoped<ILiquidacionCostoService, LiquidacionCostoService>();
+builder.Services.AddScoped<ICompraLandedCostDataProvider, CompraLandedCostDataProvider>();
+builder.Services.AddScoped<IProveedorConsultaService, ProveedorConsultaService>();
+builder.Services.AddScoped<IProductoConsultaService, ProductoConsultaService>();
+builder.Services.AddScoped<ICuentaContableLookupService, CuentaContableLookupService>();
+builder.Services.AddScoped<IAsientoContableGeneralService, AsientoContableGeneralService>();
+builder.Services.AddScoped<IInventarioRevaluacionService, InventarioRevaluacionService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -59,6 +75,16 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
+builder.Services.AddHttpClient<ISunatService, SunatService>(
+    client =>
+    {
+        client.BaseAddress = new Uri(
+            builder.Configuration["SunatApi:BaseUrl"]
+            ?? "https://api.decolecta.com/");
+
+        client.Timeout = TimeSpan.FromSeconds(15);
+    });
 
 var app = builder.Build();
 

@@ -73,6 +73,7 @@ x.numeroDocumento
 const paginados=filtrados.slice(page*rowsPerPage,page*rowsPerPage+rowsPerPage);
 
 return(
+
 <div
 className="socios-container"
 >
@@ -276,6 +277,9 @@ socio={socioEditar}
 tipoSocio={tipoSocio}
 onSaved={onGuardar}
 socios={socios}
+
+
+
 />
 </div>
 );

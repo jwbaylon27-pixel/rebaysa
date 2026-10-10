@@ -1,0 +1,165 @@
+/* Acceso al sistema. Autocontenido: no depende de styles.css.
+   Todos los selectores llevan .login-page delante para ganarle a las reglas
+   .login-* antiguas de styles.css (esa hoja se carga despues de esta). */
+
+.login-page {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  padding: 24px;
+  overflow: hidden;
+  background: #13264a;
+}
+
+/* Fondo animado: el SVG ocupa toda la pantalla, detras de la tarjeta. */
+.login-page .login-gears {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.login-page .login-gears .gear {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: login-gear-spin 160s linear infinite;
+}
+
+.login-page .login-gears .gear-b {
+  animation-duration: 105s;
+  animation-direction: reverse;
+}
+
+.login-page .login-gears .gear-c {
+  animation-duration: 75s;
+}
+
+.login-page .login-gears .gear-d {
+  animation-duration: 120s;
+  animation-direction: reverse;
+}
+
+@keyframes login-gear-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Tarjeta */
+.login-page .login-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(4, 12, 30, 0.45);
+  animation: login-rise 450ms ease-out both;
+}
+
+@keyframes login-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.login-page .login-logo {
+  display: block;
+  width: 168px;
+  max-width: 60%;
+  height: auto;
+  margin: 0 auto 20px;
+  border-radius: 12px;
+}
+
+.login-page .login-card h1 {
+  margin: 0 0 8px;
+  color: #172033;
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.login-page .login-copy {
+  margin: 0 0 22px;
+  color: #5b6b80;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.login-page .login-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  color: #33465a;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.login-page .login-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d5dde8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #8493a3;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.login-page .login-field input,
+.login-page .login-field input:hover,
+.login-page .login-field input:focus {
+  flex: 1;
+  min-height: 42px;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  box-shadow: none;
+  color: #172033;
+  font-size: 0.95rem;
+}
+
+.login-page .login-field:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.login-page .login-submit {
+  justify-content: center;
+  width: 100%;
+  margin-top: 6px;
+}
+
+@media (max-width: 480px) {
+  .login-page .login-card {
+    padding: 26px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page .login-gears .gear,
+  .login-page .login-card {
+    animation: none;
+  }
+}

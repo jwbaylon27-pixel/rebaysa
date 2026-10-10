@@ -1,4 +1,8 @@
 import api from "./api";
+// Importa el helper de autorización según la ruta relativa correspondiente en tu proyecto
+import { encabezadosAutorizados } from '../auth'; // O '../../auth'
+import { apiUrl } from '../config/api';
+
 
 import {
     KardexDetalle,
@@ -109,17 +113,36 @@ export async function listarAlmacenes(){
     return data;
 }
 //Productos (Autocomplete)
-export async function buscarProductos(
-    texto:string
-){
 
-    const {data}=await api.get(
-        "/kardex/productos",
-        {
-            params:{
-                texto
-            }
-        });
+//export async function buscarProductos(
+//    texto:string
+//){
 
-    return data;
+ //   const {data}=await api.get(
+ //       "/kardex/productos",
+ //       {
+ //           params:{
+ //               texto
+ //           }
+ //       });
+
+ //   return data;
+//}
+export async function buscarProductos(texto: string) {
+    // Si usas apiUrl: const url = apiUrl(`/kardex/productos?texto=${encodeURIComponent(texto)}`);
+    const url = `/api/kardex/productos?texto=${encodeURIComponent(texto)}`;
+
+    const response = await fetch(url, {
+        method: 'GET',
+        // Adjuntamos las cabeceras autorizadas con el Token JWT
+        headers: encabezadosAutorizados({
+            'Content-Type': 'application/json'
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error HTTP ${response.status}`);
+    }
+
+    return await response.json();
 }

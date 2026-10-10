@@ -15,6 +15,8 @@ public class Compra
     public string? Observacion { get; set; }
     public string Estado { get; set; } = "REGISTRADO";
     public int? AsientoId { get; set; }
+    public string Moneda { get; set; } = "PEN";
+    public decimal TipoCambio { get; set; } = 1m;
     public SocioNegocio? Proveedor { get; set; }
     public ICollection<CompraDetalle> Detalles { get; set; } = new List<CompraDetalle>();
 }

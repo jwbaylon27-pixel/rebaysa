@@ -1,0 +1,236 @@
+/* Estilos del módulo de Liquidación de Costo.
+   Reutiliza las clases ya existentes en styles.css: .primary-button, .alert,
+   .compact-alert, .eyebrow. Todo lo nuevo va prefijado "lc-" para no chocar
+   con el resto de la app. */
+
+.lc-page {
+  padding: 24px 32px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.lc-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.lc-page-header h1 {
+  margin: 4px 0 0;
+  font-size: 1.5rem;
+}
+
+.lc-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.secondary-button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #d6d3cb;
+  background: #fff;
+  color: #2a2a28;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  background: #f4f1ea;
+}
+
+.danger-button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #d98757;
+  background: #fff;
+  color: #b8461f;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.danger-button:hover {
+  background: #fdf1ea;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Filtros ---------- */
+
+.lc-filtros {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.lc-filtros label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  color: #5a5a55;
+  gap: 4px;
+}
+
+.lc-filtros input,
+.lc-filtros select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #d6d3cb;
+}
+
+/* ---------- Tabla ---------- */
+
+.lc-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e5e2d9;
+  border-radius: 10px;
+}
+
+.lc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.lc-table th,
+.lc-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #eeece4;
+  white-space: nowrap;
+}
+
+.lc-table th {
+  background: #faf9f5;
+  font-weight: 600;
+  color: #4a4a45;
+}
+
+.lc-table tbody tr:hover {
+  background: #fafaf7;
+}
+
+.lc-table td.numero {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.lc-empty {
+  padding: 32px;
+  text-align: center;
+  color: #7a7a73;
+}
+
+/* ---------- Badges de estado ---------- */
+
+.lc-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.lc-badge-borrador { background: #eee9df; color: #6b6a60; }
+.lc-badge-calculado { background: #e3edf7; color: #2a5f8f; }
+.lc-badge-confirmado { background: #e4f2e6; color: #2c7a3d; }
+.lc-badge-anulado { background: #fbe6e0; color: #b8461f; }
+
+/* ---------- Cards de detalle ---------- */
+
+.lc-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.lc-card {
+  border: 1px solid #e5e2d9;
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: #fff;
+}
+
+.lc-card span {
+  display: block;
+  font-size: 0.75rem;
+  color: #8a897f;
+  margin-bottom: 4px;
+}
+
+.lc-card strong {
+  font-size: 1.15rem;
+}
+
+.lc-section {
+  margin-bottom: 28px;
+}
+
+.lc-section h2 {
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+}
+
+/* ---------- Formulario de concepto de costo ---------- */
+
+.lc-form-costo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  border: 1px dashed #d6d3cb;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.lc-form-costo label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  color: #5a5a55;
+  gap: 4px;
+}
+
+.lc-form-costo input,
+.lc-form-costo select {
+  padding: 7px 8px;
+  border-radius: 6px;
+  border: 1px solid #d6d3cb;
+}
+
+.lc-form-costo .lc-form-full {
+  grid-column: 1 / -1;
+}
+
+.lc-form-costo .lc-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ---------- Panel de cálculo / confirmación ---------- */
+
+.lc-panel {
+  border: 1px solid #e5e2d9;
+  border-radius: 10px;
+  padding: 16px;
+  background: #fbfaf6;
+  margin-top: 12px;
+}
+
+.lc-panel-warning {
+  border-color: #ecd7bd;
+  background: #fdf6ea;
+  color: #8a5a1f;
+  font-size: 0.85rem;
+}

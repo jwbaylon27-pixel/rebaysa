@@ -5,7 +5,7 @@ import { buscarProductos } from "../../services/kardexService";
 export interface ProductoBusqueda {
     id: number;
     codigo: string;
-    descripcion: string;
+    nombre: string;
     stock: number;
     stockMinimo: number;
 }
@@ -20,23 +20,32 @@ export default function AutocompleteProducto({ value, onChange }: Props) {
     const [productos, setProductos] = useState<ProductoBusqueda[]>([]);
     const [mostrarLista, setMostrarLista] = useState(false);
     const [cargando, setCargando] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const contenedorRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (texto.trim().length < 2) {
             setProductos([]);
+            setError(null);
             return;
         }
 
         let cancelado = false;
         setCargando(true);
+        setError(null);
 
         const timeout = setTimeout(async () => {
             try {
                 const lista = await buscarProductos(texto);
                 if (!cancelado) setProductos(lista);
-            } catch (error) {
-                console.error(error);
+            } catch (err) {
+                console.error(err);
+                if (!cancelado) {
+                    setProductos([]);
+                    setError(
+                        err instanceof Error ? err.message : "No se pudo buscar productos."
+                    );
+                }
             } finally {
                 if (!cancelado) setCargando(false);
             }
@@ -65,7 +74,7 @@ export default function AutocompleteProducto({ value, onChange }: Props) {
                 <input
                     type="text"
                     placeholder="Buscar producto por código o descripción..."
-                    value={value ? `${value.codigo} — ${value.descripcion}` : texto}
+                    value={value ? `${value.codigo} — ${value.nombre}` : texto}
                     onChange={(e) => {
                         setTexto(e.target.value);
                         onChange(null);
@@ -84,7 +93,13 @@ export default function AutocompleteProducto({ value, onChange }: Props) {
 
             {mostrarLista && texto.trim().length >= 2 && (
                 <div className="kx-autocomplete-list">
-                    {productos.length === 0 && !cargando && (
+                    {error && (
+                        <div className="kx-autocomplete-empty" style={{ color: "var(--kx-salida, #d64545)" }}>
+                            {error}
+                        </div>
+                    )}
+
+                    {!error && productos.length === 0 && !cargando && (
                         <div className="kx-autocomplete-empty">
                             No se encontraron productos para "{texto}"
                         </div>
@@ -101,7 +116,7 @@ export default function AutocompleteProducto({ value, onChange }: Props) {
                             }}
                         >
                             <span className="kx-code">{p.codigo}</span>
-                            <span className="kx-name">{p.descripcion}</span>
+                            <span className="kx-name">{p.nombre}</span>
                             {p.stock <= p.stockMinimo && (
                                 <span className="badge badge-red">Stock bajo</span>
                             )}

@@ -24,4 +24,11 @@
     <ProjectReference Include="..\ERP.Persistence\ERP.Persistence.csproj" />
   </ItemGroup>
 
+  <!-- El módulo Landed Cost está en preparación: sus servicios de aplicación
+       todavía no existen en la capa correcta. Excluir ambas copias evita que
+       controladores incompletos bloqueen el resto de la API. -->
+  <ItemGroup>
+    <Compile Remove="Controllers\LandedCostController_ant.cs" />
+  </ItemGroup>
+
 </Project>

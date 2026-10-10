@@ -35,7 +35,7 @@ import "./movimientos.css";
 interface ProductoBusqueda {
     id: number;
     codigo: string;
-    descripcion: string;
+    nombre: string;
     stock: number;
     stockMinimo: number;
 }
@@ -115,7 +115,10 @@ export default function MovimientosInventario() {
     // RESUMEN
     //------------------------------------------
     async function cargarResumen() {
-        if (!producto) return;
+        if (!producto) {
+            setResumen(null);
+            return;
+        }
         try {
             const data =
                 await obtenerResumenProducto(
@@ -134,9 +137,6 @@ export default function MovimientosInventario() {
 
     async function buscarMovimientos() {
 
-        if (!producto)
-            return;
-
         try {
 
             setLoading(true);
@@ -146,7 +146,7 @@ export default function MovimientosInventario() {
 
                     ...filtro,
 
-                    productoId: producto.id,
+                    productoId: producto?.id ?? 0,
 
                     almacenId: almacenId
 
@@ -202,9 +202,6 @@ export default function MovimientosInventario() {
 
     async function descargarExcel() {
 
-        if (!producto)
-            return;
-
         try {
 
             const archivo =
@@ -212,7 +209,7 @@ export default function MovimientosInventario() {
 
                     ...filtro,
 
-                    productoId: producto.id,
+                    productoId: producto?.id ?? 0,
 
                     almacenId
 
@@ -238,9 +235,6 @@ export default function MovimientosInventario() {
 
     async function descargarPDF() {
 
-        if (!producto)
-            return;
-
         try {
 
             const archivo =
@@ -248,7 +242,7 @@ export default function MovimientosInventario() {
 
                     ...filtro,
 
-                    productoId: producto.id,
+                    productoId: producto?.id ?? 0,
 
                     almacenId
 
@@ -398,8 +392,6 @@ export default function MovimientosInventario() {
                 <button
                     className="primary-button"
                     onClick={buscarMovimientos}
-                    disabled={!producto}
-                    title={!producto ? "Seleccione un producto primero" : undefined}
                 >
                     <Search size={18}/>
                     Buscar
@@ -407,8 +399,6 @@ export default function MovimientosInventario() {
 
                 <button
                     className="secondary-button"
-                    disabled={!producto}
-                    title={!producto ? "Seleccione un producto primero" : undefined}
                     onClick={() => {
 
                         setFiltro({
@@ -436,8 +426,7 @@ export default function MovimientosInventario() {
                 <button
                     className="secondary-button"
                     onClick={descargarExcel}
-                    disabled={!producto || movimientos.length === 0}
-                    title={!producto ? "Seleccione un producto primero" : undefined}
+                    disabled={movimientos.length === 0}
                 >
                     <FileSpreadsheet size={18}/>
                     Excel
@@ -446,8 +435,7 @@ export default function MovimientosInventario() {
                 <button
                     className="secondary-button"
                     onClick={descargarPDF}
-                    disabled={!producto || movimientos.length === 0}
-                    title={!producto ? "Seleccione un producto primero" : undefined}
+                    disabled={movimientos.length === 0}
                 >
                     <FileText size={18}/>
                     PDF
@@ -457,7 +445,7 @@ export default function MovimientosInventario() {
                     className="secondary-button"
                     onClick={imprimir}
                     disabled={!producto || movimientos.length === 0}
-                    title={!producto ? "Seleccione un producto primero" : undefined}
+                    title={!producto ? "Seleccione un producto para imprimir su ficha" : undefined}
                 >
                     <Printer size={18}/>
                     Imprimir

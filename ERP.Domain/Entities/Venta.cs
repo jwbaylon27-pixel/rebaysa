@@ -30,6 +30,11 @@ public class Venta
 
     public int? AsientoId { get; set; }
 
+    public string Moneda { get; set; } = "PEN";
+    public int? DiasCredito { get; set; }
+    public decimal TipoCambio { get; set; } = 1m;
+    public DateTime? FechaVencimiento { get; set; }
+
     public SocioNegocio? Cliente { get; set; }
 
     public ICollection<VentaDetalle> Detalles { get; set; } = new List<VentaDetalle>();

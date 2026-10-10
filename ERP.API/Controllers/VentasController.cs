@@ -1,4 +1,5 @@
 using ERP.API.Dtos;
+using ERP.Application.Interfaces;
 using ERP.Domain.Entities;
 using ERP.Persistence.Context;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +16,12 @@ namespace ERP.API.Controllers;
 public class VentasController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly ITipoCambioService _tipoCambioService;
 
-    public VentasController(ApplicationDbContext context)
+    public VentasController(ApplicationDbContext context, ITipoCambioService tipoCambioService)
     {
         _context = context;
+        _tipoCambioService = tipoCambioService;
     }
 
     [HttpGet]
@@ -45,7 +48,10 @@ public class VentasController : ControllerBase
                 v.SubTotal,
                 v.IGV,
                 v.Total,
-                v.Estado
+                v.Estado,
+                "venta",       // Tipo
+                v.MetodoPago,  // MetodoPago
+                v.AsientoId
             ))
             .ToListAsync();
 
@@ -74,8 +80,11 @@ public class VentasController : ControllerBase
         var cuentaClienteId = await ResolverCuentaId("121");
         var cuentaVentasId = await ResolverCuentaId("70111");
         var cuentaIgvId = await ResolverCuentaId("40111");
-        if (cuentaClienteId == null || cuentaVentasId == null || cuentaIgvId == null)
-            return BadRequest(new { error = "Faltan cuentas contables activas para registrar el asiento de venta (121, 70111, 40111)." });
+        var cuentaMercaderiaId = await ResolverCuentaId("201");
+        var cuentaCostoVentaId = await ResolverCuentaId("691");
+        if (cuentaClienteId == null || cuentaVentasId == null || cuentaIgvId == null
+            || cuentaMercaderiaId == null || cuentaCostoVentaId == null)
+            return BadRequest(new { error = "Faltan cuentas contables activas para registrar el asiento de venta (121, 70111, 40111, 201, 691)." });
 
         decimal subTotal = 0;
         var detalles = new List<VentaDetalle>();
@@ -108,18 +117,62 @@ public class VentasController : ControllerBase
         var igv = decimal.Round(subTotal * 0.18m, 2);
         var total = subTotal + igv;
 
+        var metodoPago = string.IsNullOrWhiteSpace(request.MetodoPago) ? "EFECTIVO" : request.MetodoPago;
+        var esCredito = string.Equals(metodoPago, "CREDITO", StringComparison.OrdinalIgnoreCase);
+        var fecha = request.Fecha == default ? DateTime.UtcNow : request.Fecha;
+        var moneda = string.IsNullOrWhiteSpace(request.Moneda) ? "PEN" : request.Moneda!;
+
+        // El tipo de cambio se resuelve del tipo de cambio diario del sistema (por la fecha de
+        // la venta), no se acepta como texto libre del usuario. En PEN queda fijo en 1.
+        var tipoCambio = 1m;
+        if (!string.Equals(moneda, "PEN", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                tipoCambio = await _tipoCambioService.ObtenerAsync(fecha);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = $"No se pudo resolver el tipo de cambio para la fecha {fecha:yyyy-MM-dd}: {ex.Message}" });
+            }
+        }
+
+        // ------------------------------------------------------------
+        // VALIDAR LIMITE DE CREDITO (solo ventas al credito)
+        // ------------------------------------------------------------
+        if (esCredito)
+        {
+            var saldoActual = cliente.Saldo;
+            var limiteCredito = cliente.LimiteCredito;
+
+            if (limiteCredito > 0 && (saldoActual + total) > limiteCredito)
+            {
+                return BadRequest(new
+                {
+                    error = $"La venta excede el limite de credito del cliente. Saldo actual: {saldoActual:F2}, limite: {limiteCredito:F2}."
+                });
+            }
+        }
+
+        var diasCredito = esCredito ? (request.DiasCredito ?? 0) : (int?)null;
+        var fechaVencimiento = esCredito ? fecha.AddDays(diasCredito ?? 0) : (DateTime?)null;
+
         var venta = new Venta
         {
             ClienteId = request.ClienteId,
             UsuarioId = usuarioId.Value,
-            Fecha = request.Fecha == default ? DateTime.UtcNow : request.Fecha,
+            Fecha = fecha,
             TipoDocumento = string.IsNullOrWhiteSpace(request.TipoDocumento) ? "BOLETA" : request.TipoDocumento,
             Serie = request.Serie,
             NumeroDocumento = request.NumeroDocumento,
             SubTotal = subTotal,
             IGV = igv,
             Total = total,
-            MetodoPago = string.IsNullOrWhiteSpace(request.MetodoPago) ? "EFECTIVO" : request.MetodoPago,
+            Moneda = moneda,
+            TipoCambio = tipoCambio,
+            MetodoPago = metodoPago,
+            DiasCredito = diasCredito,
+            FechaVencimiento = fechaVencimiento,
             Observacion = request.Observacion,
             Estado = "REGISTRADO",
             Detalles = detalles
@@ -132,11 +185,16 @@ public class VentasController : ControllerBase
             _context.Ventas.Add(venta);
             await _context.SaveChangesAsync();
 
+            var costoTotalVenta = await CalcularCostoTotalAsync(venta.Detalles, almacenId.Value);
+
             var asientoId = await RegistrarAsientoVenta(
                 venta,
                 cuentaClienteId.Value,
                 cuentaVentasId.Value,
-                cuentaIgvId.Value);
+                cuentaIgvId.Value,
+                cuentaMercaderiaId.Value,
+                cuentaCostoVentaId.Value,
+                costoTotalVenta);
 
             venta.AsientoId = asientoId;
             await _context.SaveChangesAsync();
@@ -144,6 +202,15 @@ public class VentasController : ControllerBase
             foreach (var detalle in venta.Detalles)
             {
                 await RegistrarMovimientoInventario(venta, detalle, almacenId.Value);
+            }
+
+            // ------------------------------------------------------------
+            // ACTUALIZAR SALDO DEL CLIENTE (solo ventas al credito)
+            // ------------------------------------------------------------
+            if (esCredito)
+            {
+                cliente.Saldo = cliente.Saldo + venta.Total;
+                await _context.SaveChangesAsync();
             }
 
             await transaction.CommitAsync();
@@ -169,7 +236,8 @@ public class VentasController : ControllerBase
         {
             mensaje = "Venta registrada correctamente.",
             ventaId = venta.Id,
-            asientoId = venta.AsientoId
+            asientoId = venta.AsientoId,
+            fechaVencimiento = venta.FechaVencimiento
         });
     }
 
@@ -193,9 +261,17 @@ public class VentasController : ControllerBase
         return cuentas.FirstOrDefault() == 0 ? null : cuentas.First();
     }
 
-    private async Task<int> RegistrarAsientoVenta(Venta venta, int cuentaClienteId, int cuentaVentasId, int cuentaIgvId)
+    private async Task<int> RegistrarAsientoVenta(
+        Venta venta,
+        int cuentaClienteId,
+        int cuentaVentasId,
+        int cuentaIgvId,
+        int cuentaMercaderiaId,
+        int cuentaCostoVentaId,
+        decimal costoTotalVenta)
     {
         var glosa = $"Venta {venta.TipoDocumento} {venta.Serie}-{venta.NumeroDocumento}";
+        var totalAsiento = venta.Total + costoTotalVenta;
 
         var asientoId = await ExecuteScalarIntAsync(
             """
@@ -210,10 +286,11 @@ public class VentasController : ControllerBase
             ("@TipoOperacion", "VENTA"),
             ("@ReferenciaId", venta.Id),
             ("@Glosa", glosa),
-            ("@TotalDebe", venta.Total),
-            ("@TotalHaber", venta.Total),
+            ("@TotalDebe", totalAsiento),
+            ("@TotalHaber", totalAsiento),
             ("@UsuarioId", venta.UsuarioId));
 
+        // Lado del ingreso: Debe Cliente, Haber Ventas + IGV
         await _context.Database.ExecuteSqlRawAsync(
             """
             INSERT INTO dbo.AsientoContableDetalle (AsientoId, CuentaId, Debe, Haber, Glosa)
@@ -231,7 +308,50 @@ public class VentasController : ControllerBase
             venta.IGV,
             glosa);
 
+        // Lado del costo: Debe Costo de Ventas (691), Haber Mercaderias (201)
+        if (costoTotalVenta > 0)
+        {
+            var glosaCosto = $"Costo de venta {venta.TipoDocumento} {venta.Serie}-{venta.NumeroDocumento}";
+
+            await _context.Database.ExecuteSqlRawAsync(
+                """
+                INSERT INTO dbo.AsientoContableDetalle (AsientoId, CuentaId, Debe, Haber, Glosa)
+                VALUES
+                    ({0}, {1}, {2}, 0, {4}),
+                    ({0}, {3}, 0, {2}, {4});
+                """,
+                asientoId,
+                cuentaCostoVentaId,
+                costoTotalVenta,
+                cuentaMercaderiaId,
+                glosaCosto);
+        }
+
         return asientoId;
+    }
+
+    private async Task<decimal> CalcularCostoTotalAsync(IEnumerable<VentaDetalle> detalles, int almacenId)
+    {
+        decimal costoTotal = 0;
+
+        foreach (var detalle in detalles)
+        {
+            var costoUnitario = await _context.Database
+                .SqlQueryRaw<decimal>(
+                    """
+                    SELECT ISNULL(
+                        (SELECT CostoPromedio FROM dbo.Inventario WHERE ProductoId = {0} AND AlmacenId = {1}),
+                        0
+                    ) AS Value
+                    """,
+                    detalle.ProductoId,
+                    almacenId)
+                .FirstAsync();
+
+            costoTotal += costoUnitario * detalle.Cantidad;
+        }
+
+        return costoTotal;
     }
 
     private async Task RegistrarMovimientoInventario(Venta venta, VentaDetalle detalle, int almacenId)

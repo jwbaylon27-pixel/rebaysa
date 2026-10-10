@@ -1,0 +1,20 @@
+SELECT
+    A.Id            AS AsientoId,
+    A.TipoOperacion,
+    A.ReferenciaId,
+    A.Glosa         AS GlosaAsiento,
+    A.TotalDebe,
+    A.TotalHaber,
+    A.UsuarioId,
+    A.FechaRegistro,
+    D.Id            AS DetalleId,
+    D.CuentaId,
+    PC.Codigo       AS CuentaCodigo,
+    PC.Nombre       AS CuentaNombre,
+    D.Debe,
+    D.Haber,
+    D.Glosa         AS GlosaDetalle
+FROM [dbo].[AsientoContable] A
+INNER JOIN [dbo].[AsientoContableDetalle] D ON D.AsientoId = A.Id
+INNER JOIN [dbo].[PlanCuentas] PC ON PC.Id = D.CuentaId
+WHERE A.Id = 1028;

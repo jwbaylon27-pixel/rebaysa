@@ -100,7 +100,7 @@ public class KardexService : IKardexService
         //-------------------------------------------------
 
         ws.Cell("A1").Value = "KARDEX GENERAL";
-        ws.Range("A1:J1").Merge();
+        ws.Range("A1:K1").Merge();
         ws.Cell("A1").Style.Font.Bold = true;
         ws.Cell("A1").Style.Font.FontSize = 16;
         ws.Cell("A1").Style.Alignment.Horizontal =
@@ -115,16 +115,17 @@ public class KardexService : IKardexService
         ws.Cell(fila, 1).Value = "Fecha";
         ws.Cell(fila, 2).Value = "Movimiento";
         ws.Cell(fila, 3).Value = "Documento";
-        ws.Cell(fila, 4).Value = "Producto";
-        ws.Cell(fila, 5).Value = "Entrada";
-        ws.Cell(fila, 6).Value = "Salida";
-        ws.Cell(fila, 7).Value = "Stock Ant.";
-        ws.Cell(fila, 8).Value = "Stock Act.";
-        ws.Cell(fila, 9).Value = "Costo";
-        ws.Cell(fila, 10).Value = "Total";
+        ws.Cell(fila, 4).Value = "Código";
+        ws.Cell(fila, 5).Value = "Producto";
+        ws.Cell(fila, 6).Value = "Entrada";
+        ws.Cell(fila, 7).Value = "Salida";
+        ws.Cell(fila, 8).Value = "Stock Ant.";
+        ws.Cell(fila, 9).Value = "Stock Act.";
+        ws.Cell(fila, 10).Value = "Costo";
+        ws.Cell(fila, 11).Value = "Total";
 
         var encabezado =
-            ws.Range(fila, 1, fila, 10);
+            ws.Range(fila, 1, fila, 11);
 
         encabezado.Style.Font.Bold = true;
 
@@ -142,28 +143,18 @@ public class KardexService : IKardexService
 
         foreach (var item in movimientos)
         {
-            ws.Cell(fila, 1).Value =
-                item.Fecha;
-            ws.Cell(fila, 1).Style.DateFormat.Format =
-                "dd/MM/yyyy";
-            ws.Cell(fila, 2).Value =
-                item.TipoMovimiento;
-            ws.Cell(fila, 3).Value =
-                item.Documento;
-            ws.Cell(fila, 4).Value =
-                item.Producto;
-            ws.Cell(fila, 5).Value =
-                item.Entrada;
-            ws.Cell(fila, 6).Value =
-                item.Salida;
-            ws.Cell(fila, 7).Value =
-                item.StockAnterior;
-            ws.Cell(fila, 8).Value =
-                item.StockActual;
-            ws.Cell(fila, 9).Value =
-                item.CostoUnitario;
-            ws.Cell(fila, 10).Value =
-                item.CostoTotal;
+            ws.Cell(fila, 1).Value = item.Fecha;
+            ws.Cell(fila, 1).Style.DateFormat.Format ="dd/MM/yyyy";
+            ws.Cell(fila, 2).Value = item.TipoMovimiento;
+            ws.Cell(fila, 3).Value = item.Documento;
+            ws.Cell(fila, 4).Value = item.CodigoProducto;
+            ws.Cell(fila, 5).Value = item.Producto;
+            ws.Cell(fila, 6).Value = item.Entrada;
+            ws.Cell(fila, 7).Value = item.Salida;
+            ws.Cell(fila, 8).Value = item.StockAnterior;
+            ws.Cell(fila, 9).Value = item.StockActual;
+            ws.Cell(fila, 10).Value = item.CostoUnitario;
+            ws.Cell(fila, 11).Value = item.CostoTotal;
             fila++;
         }
 
@@ -221,7 +212,8 @@ public class KardexService : IKardexService
                         columns.RelativeColumn(1.5f); // Fecha
                         columns.RelativeColumn(1.2f); // Movimiento
                         columns.RelativeColumn(2.4f); // Documento
-                        columns.RelativeColumn(3.5f); // Producto
+                        columns.RelativeColumn(1.4f); // Código
+                        columns.RelativeColumn(2.8f); // Producto
                         columns.RelativeColumn(1);    // Entrada
                         columns.RelativeColumn(1);    // Salida
                         columns.RelativeColumn(1);    // Stock Ant.
@@ -239,6 +231,7 @@ public class KardexService : IKardexService
                         Header(header.Cell(), "Fecha");
                         Header(header.Cell(), "Movimiento");
                         Header(header.Cell(), "Documento");
+                        Header(header.Cell(), "Código");
                         Header(header.Cell(), "Producto");
                         Header(header.Cell(), "Entrada");
                         Header(header.Cell(), "Salida");
@@ -257,6 +250,7 @@ public class KardexService : IKardexService
                         Body(table.Cell(), item.Fecha.ToString("dd/MM/yyyy"));
                         Body(table.Cell(), item.TipoMovimiento);
                         Body(table.Cell(), item.Documento);
+                        Body(table.Cell(), item.CodigoProducto);
                         Body(table.Cell(), item.Producto);
                         Body(table.Cell(), item.Entrada.ToString());
                         Body(table.Cell(), item.Salida.ToString());

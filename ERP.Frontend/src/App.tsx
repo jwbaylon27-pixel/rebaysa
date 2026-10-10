@@ -1,5 +1,11 @@
+import "./api/axiosSetup";
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Pencil,Trash2,Plus,X} from "lucide-react";
+import {
+  Pencil, Trash2, Plus, X, Menu, PanelLeftClose, LogOut, LayoutDashboard,
+  Package, ShoppingCart, ReceiptText, Users, Truck, BookOpen, Settings,
+  CreditCard, FileText, CircleDollarSign, Warehouse, ChartNoAxesCombined,
+  type LucideIcon,
+} from "lucide-react";
 import RegistrarCompra from "./components/RegistrarCompra";
 import RegistrarVenta from "./components/RegistrarVenta"; // 👈 importar nuevo componente
 import Movimientos from "./components/Movimientos";
@@ -21,14 +27,20 @@ import {
   listarSociosNegocio,
 } from './api/sociosNegocio';
 import { moduleGroups, type AppModule, type ModuleGroup } from './modules';
+import './module-sections.css';
 import type { Categorias, Marca, Producto, ProductoForm } from './types';
 import type { SocioNegocio, SocioNegocioForm } from './types/socioNegocio';
 import ProcesoComercial from "./components/ProcesoComercial";
 import SociosNegocio from "./components/SociosNegocio";
+import CobrosVenta from "./components/CobrosVenta";
+import RegistroVentas from "./components/RegistroVentas";
+import RegistrarNotaCredito from "./components/RegistrarNotaCredito";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import rebaysaTheme from "./theme/rebaysaTheme";
 import Login from './components/Login';
 import { cerrarSesion, guardarSesion, obtenerSesion, type Sesion } from './auth';
+import LiquidacionCostoModule from './pages/LiquidacionCosto/LiquidacionCostoModule';
+import TipoCambioPage from './pages/TipoCambio/TipoCambioPage';
 
 const productoInicial: ProductoForm = {
   categoriaId: 1,
@@ -62,10 +74,26 @@ const moduloInicial: ModuleForm = {
 
 const MODULOS_STORAGE_KEY = 'rebaysa.modulos';
 
+const iconosModulo: Record<string, LucideIcon> = {
+  Dashboard: LayoutDashboard,
+  Productos: Package,
+  Compras: ShoppingCart,
+  Ventas: ReceiptText,
+  Clientes: Users,
+  Proveedores: Truck,
+  Kardex: BookOpen,
+  Cobros: CreditCard,
+  'Notas de Crédito': FileText,
+  'Tipo de Cambio': CircleDollarSign,
+  Inventario: Warehouse,
+  Reportes: ChartNoAxesCombined,
+  Configuracion: Settings,
+};
+
 const permisosPorRol: Record<Sesion['rol'], string[]> = {
   ADMINISTRADOR: ['*'],
-  VENDEDOR: ['Dashboard', 'Productos', 'Ventas', 'Clientes'],
-  ALMACENERO: ['Dashboard', 'Productos', 'Compras', 'Kardex', 'Proveedores'],
+  VENDEDOR: ['Dashboard', 'Productos', 'Ventas', 'Clientes', 'Cobros', 'Notas de Crédito', 'Reportes', 'Tipo de Cambio'],
+  ALMACENERO: ['Dashboard', 'Productos', 'Compras', 'Kardex', 'Proveedores', 'Liquidación de Costo', 'Tipo de Cambio'],
 };
 
 function cargarModulosIniciales() {
@@ -83,7 +111,12 @@ function cargarModulosIniciales() {
       const modulosGuardadosPorNombre = new Map(
         grupoGuardado?.modules.map((module) => [module.name, module]) ?? [],
       );
-      const modulosBase = group.modules.map((module) => modulosGuardadosPorNombre.get(module.name) ?? module);
+      // Si el modulo guardado en localStorage es anterior a las secciones (no trae `section`),
+      // se conserva la seccion definida en modules.ts.
+      const modulosBase = group.modules.map((module) => {
+        const guardado = modulosGuardadosPorNombre.get(module.name);
+        return guardado ? { ...guardado, section: guardado.section ?? module.section } : module;
+      });
       const modulosPersonalizados =
         grupoGuardado?.modules.filter(
           (module) => !group.modules.some((moduloBase) => moduloBase.name === module.name),
@@ -108,6 +141,7 @@ function App() {
   const [modulos, setModulos] = useState<ModuleGroup[]>(cargarModulosIniciales);
   const [moduloActivo, setModuloActivo] = useState('Productos');
   const [moduloForm, setModuloForm] = useState<ModuleForm>(moduloInicial);
+  const [seccionesCerradas, setSeccionesCerradas] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState<ProductoForm>(productoInicial);
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
@@ -116,6 +150,7 @@ function App() {
   const [guardandoSocio, setGuardandoSocio] = useState(false);
   const [error, setError] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
   const frontendModules = useMemo(
     () => modulos.find((group) => group.group === 'Frontend')?.modules ?? [],
     [modulos],
@@ -126,6 +161,22 @@ function App() {
     const permisos = permisosPorRol[sesion.rol];
     return frontendModules.filter((module) => permisos.includes('*') || permisos.includes(module.name));
   }, [frontendModules, sesion]);
+
+  // Modulos permitidos agrupados por seccion, respetando el orden en que aparecen en modules.ts.
+  // Los que no tienen seccion van al final, en "Otros".
+  const seccionesSidebar = useMemo(() => {
+    const secciones: { nombre: string; modulos: AppModule[] }[] = [];
+    frontendModulesPermitidos.forEach((module) => {
+      const nombre = module.section?.trim() || 'Otros';
+      let seccion = secciones.find((item) => item.nombre === nombre);
+      if (!seccion) {
+        seccion = { nombre, modulos: [] };
+        secciones.push(seccion);
+      }
+      seccion.modulos.push(module);
+    });
+    return secciones.sort((a, b) => Number(a.nombre === 'Otros') - Number(b.nombre === 'Otros'));
+  }, [frontendModulesPermitidos]);
 
   const puedeGestionarInventario = sesion?.rol === 'ADMINISTRADOR' || sesion?.rol === 'ALMACENERO';
 
@@ -345,6 +396,7 @@ async function guardarSocio(
       name: module.name,
       description: module.description,
       status: module.status,
+      section: module.section,
       originalGroup: module.group,
       originalName: module.name,
     });
@@ -379,6 +431,7 @@ async function guardarSocio(
       name: moduloForm.name.trim(),
       description: moduloForm.description.trim(),
       status: moduloForm.status,
+      section: moduloForm.group === 'Frontend' ? moduloForm.section?.trim() || undefined : undefined,
     };
 
     if (!modulo.name || !modulo.description) {
@@ -610,6 +663,25 @@ function renderProductos() {
             </label>
           </div>
 
+          {moduloForm.group === 'Frontend' && (
+            <label>
+              Seccion del menu
+              <input
+                list="secciones-menu"
+                value={moduloForm.section ?? ''}
+                onChange={(event) => actualizarModulo('section', event.target.value)}
+                placeholder="Ej. Mantenimiento"
+              />
+              <datalist id="secciones-menu">
+                {Array.from(new Set(frontendModules.map((module) => module.section).filter(Boolean))).map(
+                  (nombre) => (
+                    <option key={nombre} value={nombre} />
+                  ),
+                )}
+              </datalist>
+            </label>
+          )}
+
           <label>
             Nombre
             <input
@@ -646,6 +718,7 @@ function renderProductos() {
               <thead>
                 <tr>
                   <th>Grupo</th>
+                  <th>Seccion</th>
                   <th>Modulo</th>
                   <th>Estado</th>
                   <th>Descripcion</th>
@@ -656,6 +729,7 @@ function renderProductos() {
                 {modulosPlano.map((module) => (
                   <tr key={`${module.group}-${module.name}`}>
                     <td>{module.group}</td>
+                    <td>{module.section ?? '—'}</td>
                     <td>
                       <strong>{module.name}</strong>
                     </td>
@@ -750,6 +824,18 @@ function renderProductos() {
       return <RegistrarVenta productos={productos} socios={clientes} />;
     }
 
+    if (moduloActivo === "Cobros") {
+      return <CobrosVenta />;
+    }
+
+    if (moduloActivo === "Notas de Crédito") {
+      return <RegistrarNotaCredito />;
+    }
+
+    if (moduloActivo === "Reportes") {
+      return <RegistroVentas />;
+    }
+
     if (moduloActivo === "Dashboard") {
       //return <Movimientos />;
       return <Dashboard/>;
@@ -766,6 +852,14 @@ function renderProductos() {
       return renderConfiguracion();
     }
 
+    if (moduloActivo === 'Liquidación de Costo') {
+      return <LiquidacionCostoModule />;
+    }
+
+    if (moduloActivo === 'Tipo de Cambio') {
+      return <TipoCambioPage />;
+    }
+
     return renderModuloPlaneado();
   }
 
@@ -778,8 +872,8 @@ function renderProductos() {
     <CssBaseline />
     <div>
     <main className="app-shell">
-      <div className="app-layout">
-        <aside className="module-sidebar panel">
+      <div className={menuMovilAbierto ? "app-layout menu-open" : "app-layout"}>
+        <aside className="module-sidebar panel" aria-label="Navegación principal">
           <div className="sidebar-brand">
             <img src={logo} alt="REBAYSA" className="sidebar-logo" />
           </div>
@@ -787,27 +881,72 @@ function renderProductos() {
             <span>ERP</span>
             <strong>Modulos</strong>
           </div>
-          <div className="session-summary">
-            <strong>{sesion.nombreCompleto}</strong>
-            <span>{sesion.rol}</span>
-            <button type="button" onClick={() => { cerrarSesion(); setSesion(null); }}>Cerrar sesión</button>
-          </div>
           <nav className="module-nav" aria-label="Modulos principales">
-            {frontendModulesPermitidos.map((module) => (
-              <button
-                className={module.name === moduloActivo ? 'module-link active' : 'module-link'}
-                key={module.name}
-                type="button"
-                onClick={() => setModuloActivo(module.name)}
-              >
-                <span>{module.name}</span>
-                <small>{module.status === 'activo' ? 'Activo' : 'Planeado'}</small>
-              </button>
-            ))}
+            {seccionesSidebar.map((seccion) => {
+              const cerrada = seccionesCerradas[seccion.nombre] ?? false;
+              const contieneActivo = seccion.modulos.some((module) => module.name === moduloActivo);
+
+              return (
+                <div className="module-section" key={seccion.nombre}>
+                  <button
+                    type="button"
+                    className={contieneActivo ? 'module-section-title has-active' : 'module-section-title'}
+                    aria-expanded={!cerrada}
+                    onClick={() =>
+                      setSeccionesCerradas((actual) => ({ ...actual, [seccion.nombre]: !cerrada }))
+                    }
+                  >
+                    <span>{seccion.nombre}</span>
+                    <small>{cerrada ? '▸' : '▾'}</small>
+                  </button>
+
+                  {!cerrada &&
+                    seccion.modulos.map((module) => {
+                      const IconoModulo = iconosModulo[module.name] ?? Package;
+                      return <button
+                        className={module.name === moduloActivo ? 'module-link active' : 'module-link'}
+                        key={module.name}
+                        type="button"
+                        onClick={() => { setModuloActivo(module.name); setMenuMovilAbierto(false); }}
+                      >
+                        <span className="module-link-label"><IconoModulo size={18} strokeWidth={1.9} />{module.name}</span>
+                        <small>{module.status === 'activo' ? 'Activo' : 'Planeado'}</small>
+                      </button>
+                    })}
+                </div>
+              );
+            })}
           </nav>
         </aside>
 
         <div className="app-content-column">
+          <header className="workspace-header">
+            <button
+              type="button"
+              className="mobile-menu-button"
+              aria-label={menuMovilAbierto ? 'Cerrar menú' : 'Abrir menú'}
+              aria-expanded={menuMovilAbierto}
+              onClick={() => setMenuMovilAbierto((abierto) => !abierto)}
+            >
+              {menuMovilAbierto ? <PanelLeftClose size={20} /> : <Menu size={20} />}
+            </button>
+            <div className="workspace-title">
+              <span>ERP REBAYSA SAC</span>
+              <h1>{moduloActivo}</h1>
+            </div>
+            <div className="workspace-user" aria-label="Sesión actual">
+              <strong>{sesion.nombreCompleto}</strong>
+              <span>{sesion.rol}</span>
+              <button
+                type="button"
+                className="logout-button"
+                onClick={() => { cerrarSesion(); setSesion(null); }}
+              >
+                <LogOut size={15} />
+                Cerrar sesión
+              </button>
+            </div>
+          </header>
           {error && <div className="alert">{error}</div>}
 
           <div className="content-stack">{renderContenido()}</div>
@@ -831,6 +970,7 @@ function renderProductos() {
             <button
               type="button"
               className="close-btn"
+              aria-label="Cerrar formulario de producto"
               onClick={() => setMostrarModal(false)}
             >
               <X size={20} />

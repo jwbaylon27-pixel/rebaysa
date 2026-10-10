@@ -27,11 +27,15 @@ public record MovimientoComercialDto(
     DateTime Fecha,
     int SocioId,
     string Socio,
-    IReadOnlyCollection<MovimientoDetalleDto> Detalles,
+   // IReadOnlyCollection<MovimientoDetalleDto> Detalles,
+    List<MovimientoDetalleDto> Detalles,
     decimal SubTotal,
     decimal IGV,
     decimal Total,
-    string Estado
+    string Estado,
+    string Tipo,          // "compra" | "venta"
+    string? MetodoPago,   // null en compras (esa tabla no tiene esta columna)
+    int? AsientoId
 );
 
 public record MovimientoDetalleDto(

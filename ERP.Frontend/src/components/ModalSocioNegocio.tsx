@@ -27,6 +27,8 @@ import {
   SocioNegocio,
   SocioNegocioForm
 } from "../types/socioNegocio";
+import ConsultaRuc from "./ConsultaRuc";
+import type { RucConsulta } from "../api/sunat";
 
 interface Props {
 
@@ -57,6 +59,9 @@ tipoSocio,
 onSaved,
 
 }:Props){
+
+const [datosSunat, setDatosSunat] =
+  useState<RucConsulta | null>(null);
 
 const [form,setForm]=
 
@@ -101,21 +106,15 @@ new Date()
 
 
 useEffect(()=>{
-
+  setDatosSunat(null);
 if(socio){
-
 setForm({
-
 ...socio
-
 });
-
 }
 
 else{
-
 setForm({
-
 id:0,
 tipoSocio,
 tipoDocumento:
@@ -147,6 +146,18 @@ setForm({
 ...form,
 [campo]:valor
 });
+};
+
+const aplicarDatosSunat = (datos: RucConsulta) => {
+  setDatosSunat(datos);
+
+  setForm((prev) => ({
+    ...prev,
+    tipoDocumento: "RUC",
+    numeroDocumento: datos.ruc,
+    nombres: datos.razonSocial,
+    direccion: datos.direccion,
+  }));
 };
 
 const guardar=async()=>{
@@ -306,6 +317,47 @@ Información General
 
 <Grid container spacing={3}>
 
+{/* CONSULTA DE RUC */}
+{tipoSocio === "P" && (
+  <Grid size={12}>
+    <ConsultaRuc onResultado={aplicarDatosSunat} />
+  </Grid>
+)}
+
+{/* RESULTADO DE SUNAT */}
+{datosSunat && tipoSocio === "P" && (
+  <Grid size={12}>
+    <div className="sunat-result">
+      <Typography fontWeight={700} fontSize={16}>
+        {datosSunat.razonSocial}
+      </Typography>
+
+      <Typography variant="body2">
+        RUC: {datosSunat.ruc}
+      </Typography>
+
+      <Typography variant="body2">
+        Estado: {datosSunat.estado || "No informado"}
+      </Typography>
+
+      <Typography variant="body2">
+        Condición: {datosSunat.condicion || "No informada"}
+      </Typography>
+
+      <Typography variant="body2">
+        Ubicación:{" "}
+        {[
+          datosSunat.distrito,
+          datosSunat.provincia,
+          datosSunat.departamento,
+        ]
+          .filter(Boolean)
+          .join(", ") || "No informada"}
+      </Typography>
+    </div>
+  </Grid>
+)}
+
 <Grid size={12}>
 <TextField
 label={tipoSocio==="C"?"DNI":"RUC"}
@@ -316,9 +368,7 @@ sx={inputStyle}
 />
 
 </Grid>
-
 <Grid size={12}>
-
 <TextField
 label={tipoSocio==="C"?"Nombres":"Razón Social"}
 fullWidth

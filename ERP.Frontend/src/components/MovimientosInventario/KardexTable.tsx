@@ -27,6 +27,8 @@ export default function KardexTable({ data, loading, onDetalle }: Props) {
                 <thead>
                     <tr>
                         <th>Fecha</th>
+                        <th>Código</th>
+                        <th>Producto</th>
                         <th>Movimiento</th>
                         <th>Documento</th>
                         <th className="right">Cantidad</th>
@@ -39,25 +41,28 @@ export default function KardexTable({ data, loading, onDetalle }: Props) {
                 <tbody>
                     {data.map((item) => {
                         const esEntrada = item.entrada > 0;
+                        const cantidad = esEntrada ? item.entrada : item.salida;
 
                         return (
                             <tr key={item.id}>
                                 <td>{new Date(item.fecha).toLocaleDateString("es-PE")}</td>
+                                <td>{item.codigoProducto}</td>
+                                <td>{item.producto}</td>
                                 <td>
                                     <span className={esEntrada ? "badge badge-green" : "badge badge-red"}>
                                         {item.tipoMovimiento}
                                     </span>
                                 </td>
-                                <td>{item.referencia}</td>
+                                <td>{item.documento}</td>
                                 <td className="right">
                                     {esEntrada ? (
-                                        <span className="entrada">+{item.cantidad}</span>
+                                        <span className="entrada">+{cantidad}</span>
                                     ) : (
-                                        <span className="salida">-{item.cantidad}</span>
+                                        <span className="salida">-{cantidad}</span>
                                     )}
                                 </td>
                                 <td className="right">{item.stockAnterior}</td>
-                                <td className="right">{item.stockNuevo}</td>
+                                <td className="right">{item.stockActual}</td>
                                 <td className="right">S/ {Number(item.costoUnitario).toFixed(2)}</td>
                                 <td>
                                     <button

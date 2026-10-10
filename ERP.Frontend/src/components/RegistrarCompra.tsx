@@ -29,9 +29,14 @@ import {
   LocalShipping,
   Inventory2,
   Receipt,
+  Event,
+  Badge,
+  Business,
+  AssignmentInd,
+  AttachMoney,
 } from "@mui/icons-material";
 import axios from "axios";
-import { apiUrl } from '../config/api';
+import { obtenerSesion } from "../auth";
 import { createFilterOptions } from "@mui/material/Autocomplete";
 
 const filtroSocios = createFilterOptions<SocioNegocio>({
@@ -40,6 +45,7 @@ const filtroSocios = createFilterOptions<SocioNegocio>({
 
 type Producto = {
   id: number;
+  codigo: string; 
   nombre: string;
   precioCompra: number;
 };
@@ -66,6 +72,10 @@ interface Props {
 }
 
 const TIPOS_DOCUMENTO = ["FACTURA", "BOLETA", "GUIA", "NOTA DE CREDITO"];
+const MONEDAS = [
+  { codigo: "PEN", simbolo: "S/", etiqueta: "Soles (PEN)" },
+  { codigo: "USD", simbolo: "$", etiqueta: "Dólares (USD)" },
+];
 
 function formatoMoneda(valor: number) {
   return valor.toLocaleString("es-PE", {
@@ -74,13 +84,24 @@ function formatoMoneda(valor: number) {
   });
 }
 
+function tipoProveedorLabel(tipoDocumento: string) {
+  const t = (tipoDocumento || "").toUpperCase();
+  if (t === "RUC") return "Empresa (RUC)";
+  if (t === "DNI") return "Persona Natural (DNI)";
+  return tipoDocumento || "—";
+}
+
 export default function RegistrarCompra({ productos, socios }: Props) {
-  const [usuarioId] = useState<number>(2); // ajusta según usuario logueado
+  const sesion = obtenerSesion();
+  const usuarioId = sesion?.id ?? 0;
+  const empleadoNombre = sesion?.nombreCompleto ?? sesion?.usuario ?? "—";
 
   const [proveedorId, setProveedorId] = useState<number>(0);
   const [tipoDocumento, setTipoDocumento] = useState<string>("FACTURA");
   const [serie, setSerie] = useState<string>("");
   const [numeroDocumento, setNumeroDocumento] = useState<string>("");
+  const [fechaDocumento, setFechaDocumento] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [moneda, setMoneda] = useState<string>("PEN");
   const [observacion, setObservacion] = useState<string>("");
 
   const [detalles, setDetalles] = useState<CompraDetalle[]>([]);
@@ -93,6 +114,7 @@ export default function RegistrarCompra({ productos, socios }: Props) {
   const faltaNumero = intentoEnviar && !numeroDocumento;
 
   const proveedorSeleccionado = socios.find((s) => s.id === proveedorId) ?? null;
+  const simboloMoneda = MONEDAS.find((m) => m.codigo === moneda)?.simbolo ?? "S/";
 
   const agregarDetalle = () => {
     if (productos.length === 0) {
@@ -149,6 +171,8 @@ export default function RegistrarCompra({ productos, socios }: Props) {
     setTipoDocumento("FACTURA");
     setSerie("");
     setNumeroDocumento("");
+    setFechaDocumento(new Date().toISOString().slice(0, 10));
+    setMoneda("PEN");
     setObservacion("");
     setDetalles([]);
     setIntentoEnviar(false);
@@ -173,10 +197,11 @@ export default function RegistrarCompra({ productos, socios }: Props) {
     const compra = {
       proveedorId,
       usuarioId,
-      fecha: new Date().toISOString(),
+      fecha: new Date(fechaDocumento).toISOString(),
       tipoDocumento,
       serie,
       numeroDocumento,
+      moneda,
       observacion,
       detalles: detalles.map((d) => ({
         productoId: d.productoId,
@@ -189,7 +214,7 @@ export default function RegistrarCompra({ productos, socios }: Props) {
 
     setEnviando(true);
     try {
-      const { data } = await axios.post(apiUrl('/Compras'), compra);
+      const { data } = await axios.post("/api/Compras", compra);
       setAviso({
         tipo: "success",
         mensaje: `${data.mensaje ?? "Compra registrada"} — Nº ${data.compraId}, Asiento Nº ${data.asientoId}`,
@@ -198,7 +223,9 @@ export default function RegistrarCompra({ productos, socios }: Props) {
     } catch (error: any) {
       console.error(error);
       const detalle =
+        error.response?.data?.error ??
         error.response?.data?.mensaje ??
+        error.response?.data?.detalle ??
         error.response?.data?.title ??
         "No se pudo registrar la compra.";
       setAviso({ tipo: "error", mensaje: detalle });
@@ -219,9 +246,10 @@ export default function RegistrarCompra({ productos, socios }: Props) {
         </Box>
       </Box>
 
-      {/* Datos del documento */}
-      <Grid container spacing={2} sx={{ mb: 1 }}>
-        <Grid item xs={12} md={6}>
+      <Grid container spacing={2.5} sx={{ mb: 2.5 }}>
+        {/* ---------- Columna principal ---------- */}
+        <Grid item xs={12} md={8}>
+          {/* Proveedor a ancho completo */}
           <Autocomplete
             options={socios}
             getOptionLabel={(s) => s.nombres}
@@ -265,57 +293,188 @@ export default function RegistrarCompra({ productos, socios }: Props) {
               />
             )}
           />
-        </Grid>
-        <Grid item xs={12} md={6}>
+
+          {/* Tarjeta resumen del proveedor seleccionado */}
+          {proveedorSeleccionado && (
+            <Paper
+              variant="outlined"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2.5,
+                flexWrap: "wrap",
+                px: 2,
+                py: 1.25,
+                mt: 1.5,
+                bgcolor: "action.hover",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                <LocalShipping fontSize="small" color="action" />
+                <Typography variant="body2">
+                  <strong>{proveedorSeleccionado.nombres}</strong>
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                <Badge fontSize="small" color="action" />
+                <Typography variant="body2" fontFamily="monospace">
+                  {proveedorSeleccionado.tipoDocumento} {proveedorSeleccionado.numeroDocumento}
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                <Business fontSize="small" color="action" />
+                <Chip
+                  size="small"
+                  label={tipoProveedorLabel(proveedorSeleccionado.tipoDocumento)}
+                  color={proveedorSeleccionado.tipoDocumento?.toUpperCase() === "RUC" ? "primary" : "default"}
+                  variant="outlined"
+                />
+              </Box>
+            </Paper>
+          )}
+
+          {/* Tipo / Serie / Correlativo agrupados */}
+          <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ textTransform: "uppercase", fontWeight: 600, letterSpacing: 0.3 }}
+            >
+              Comprobante
+            </Typography>
+            <Grid container spacing={1.5} sx={{ mt: 0.25 }}>
+              <Grid item xs={6} sm={3}>
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  label="Tipo"
+                  value={tipoDocumento}
+                  onChange={(e) => setTipoDocumento(e.target.value)}
+                >
+                  {TIPOS_DOCUMENTO.map((tipo) => (
+                    <MenuItem key={tipo} value={tipo}>
+                      {tipo}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Serie"
+                  placeholder="F001"
+                  value={serie}
+                  onChange={(e) => setSerie(e.target.value)}
+                  error={faltaSerie}
+                  helperText={faltaSerie ? "Requerido" : " "}
+                />
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Correlativo"
+                  placeholder="000123"
+                  value={numeroDocumento}
+                  onChange={(e) => setNumeroDocumento(e.target.value)}
+                  error={faltaNumero}
+                  helperText={faltaNumero ? "Requerido" : " "}
+                />
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  label="Moneda"
+                  value={moneda}
+                  onChange={(e) => setMoneda(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AttachMoney fontSize="small" color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                >
+                  {MONEDAS.map((m) => (
+                    <MenuItem key={m.codigo} value={m.codigo}>
+                      {m.simbolo} {m.codigo}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            </Grid>
+          </Paper>
+
           <TextField
-            select
             fullWidth
-            label="Tipo de documento"
-            value={tipoDocumento}
-            onChange={(e) => setTipoDocumento(e.target.value)}
-            helperText=" "
+            label="Observación"
+            placeholder="Notas internas sobre esta compra (opcional)"
+            value={observacion}
+            onChange={(e) => setObservacion(e.target.value)}
+            multiline
+            minRows={1}
+            sx={{ mt: 2 }}
+          />
+        </Grid>
+
+        {/* ---------- Panel lateral: Estado / Empleado / Fecha ---------- */}
+        <Grid item xs={12} md={4}>
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 2.5,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              bgcolor: "action.hover",
+              position: { md: "sticky" },
+              top: { md: 16 },
+            }}
           >
-            {TIPOS_DOCUMENTO.map((tipo) => (
-              <MenuItem key={tipo} value={tipo}>
-                {tipo}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <TextField
-            fullWidth
-            label="Serie"
-            placeholder="F001"
-            value={serie}
-            onChange={(e) => setSerie(e.target.value)}
-            error={faltaSerie}
-            helperText={faltaSerie ? "Requerido" : " "}
-          />
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <TextField
-            fullWidth
-            label="Número"
-            placeholder="000123"
-            value={numeroDocumento}
-            onChange={(e) => setNumeroDocumento(e.target.value)}
-            error={faltaNumero}
-            helperText={faltaNumero ? "Requerido" : " "}
-          />
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ textTransform: "uppercase", fontWeight: 600 }}>
+                Estado del documento
+              </Typography>
+              <Box sx={{ mt: 0.5 }}>
+                <Chip label="Nuevo — por registrar" color="default" variant="outlined" size="small" />
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ textTransform: "uppercase", fontWeight: 600 }}>
+                Empleado
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 0.5 }}>
+                <AssignmentInd fontSize="small" color="action" />
+                <Typography variant="body2" fontWeight={600}>
+                  {empleadoNombre}
+                </Typography>
+              </Box>
+            </Box>
+
+            <TextField
+              fullWidth
+              type="date"
+              label="Fecha del documento"
+              value={fechaDocumento}
+              onChange={(e) => setFechaDocumento(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Event fontSize="small" color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ bgcolor: "background.paper" }}
+            />
+          </Paper>
         </Grid>
       </Grid>
-
-      <TextField
-        fullWidth
-        label="Observación"
-        placeholder="Notas internas sobre esta compra (opcional)"
-        value={observacion}
-        onChange={(e) => setObservacion(e.target.value)}
-        multiline
-        minRows={1}
-        sx={{ mb: 3 }}
-      />
 
       <Divider sx={{ mb: 2 }} />
 
@@ -359,14 +518,37 @@ export default function RegistrarCompra({ productos, socios }: Props) {
             {detalles.map((d, i) => (
               <TableRow key={i} hover>
                 <TableCell>
+                   {/* original
                   <Autocomplete
                     size="small"
                     options={productos}
-                    getOptionLabel={(p) => p.nombre}
+                    getOptionLabel={(p) => `${p.codigo} - ${p.nombre}`}
                     value={productos.find((p) => p.id === d.productoId) ?? null}
                     onChange={(_, valor) => actualizarDetalle(i, "productoId", valor ? valor.id : 0)}
                     sx={{ minWidth: 220 }}
                     renderInput={(params) => <TextField {...params} placeholder="Seleccione producto" />}
+                  /> */}
+                  <Autocomplete
+                    size="small"
+                    options={productos}
+                    getOptionLabel={(p) => `${p.codigo} - ${p.nombre}`}
+                    value={productos.find((p) => p.id === d.productoId) ?? null}
+                    onChange={(_, valor) => actualizarDetalle(i, "productoId", valor ? valor.id : 0)}
+                    sx={{ minWidth: 280 }}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.id}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
+                          <Chip
+                            label={option.codigo}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontFamily: "monospace", fontSize: 11, height: 20 }}
+                          />
+                          <Typography variant="body2">{option.nombre}</Typography>
+                        </Box>
+                      </li>
+                    )}
+                    renderInput={(params) => <TextField {...params} placeholder="Buscar por código o nombre..." />}
                   />
                 </TableCell>
                 <TableCell align="right">
@@ -401,7 +583,7 @@ export default function RegistrarCompra({ productos, socios }: Props) {
                 </TableCell>
                 <TableCell align="right">
                   <Typography variant="body2" fontWeight={600} fontFamily="monospace">
-                    S/ {formatoMoneda(d.total)}
+                    {simboloMoneda} {formatoMoneda(d.total)}
                   </Typography>
                 </TableCell>
                 <TableCell align="center">
@@ -420,17 +602,17 @@ export default function RegistrarCompra({ productos, socios }: Props) {
         <Box sx={{ minWidth: 260 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
             <Typography variant="body2" color="text.secondary">SubTotal</Typography>
-            <Typography variant="body2" fontFamily="monospace">S/ {formatoMoneda(subTotal)}</Typography>
+            <Typography variant="body2" fontFamily="monospace">{simboloMoneda} {formatoMoneda(subTotal)}</Typography>
           </Box>
           <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
             <Typography variant="body2" color="text.secondary">IGV (18%)</Typography>
-            <Typography variant="body2" fontFamily="monospace">S/ {formatoMoneda(igv)}</Typography>
+            <Typography variant="body2" fontFamily="monospace">{simboloMoneda} {formatoMoneda(igv)}</Typography>
           </Box>
           <Divider sx={{ my: 1 }} />
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             <Typography variant="h6">Total</Typography>
             <Typography variant="h6" fontFamily="monospace" color="primary.main">
-              S/ {formatoMoneda(total)}
+              {simboloMoneda} {formatoMoneda(total)}
             </Typography>
           </Box>
         </Box>

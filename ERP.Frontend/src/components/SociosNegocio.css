@@ -289,42 +289,39 @@
 
 }
 
+.sunat-result {
+  padding: 16px 18px;
+  border: 1px solid #b7e4ce;
+  border-radius: 14px;
+  background: #f0faf5;
+  color: #334155;
+}
 
+.sunat-result p {
+  margin: 6px 0;
+}
 
 /* RESPONSIVE */
 
 @media(max-width:900px){
-
 .socios-header{
-
 flex-direction:column;
-
 align-items:flex-start;
-
 gap:20px;
-
 }
 
 .socios-actions{
-
 width:100%;
-
 flex-direction:column;
-
 align-items:stretch;
-
 }
 
 .socios-search{
-
 width:100%;
-
 }
 
 .btn-nuevo{
-
 width:100%;
-
 }
 
 }

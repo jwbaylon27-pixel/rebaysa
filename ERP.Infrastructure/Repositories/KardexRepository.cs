@@ -268,7 +268,7 @@ ObtenerDetalleMovimiento(
         SELECT TOP (20)
               P.Id,
               P.Codigo,
-              P.Nombre AS Descripcion,
+              P.Nombre,
               ISNULL(P.Stock,0) AS Stock,
               ISNULL(P.StockMinimo,0) AS StockMinimo
         FROM Productos P

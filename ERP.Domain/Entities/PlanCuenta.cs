@@ -26,6 +26,7 @@ namespace ERP.Domain.Entities
         /// <summary>
         /// Activo Circulante, Pasivo Corriente, etc.
         /// </summary>
+        [NotMapped]
         [StringLength(80)]
         public string? Clasificacion { get; set; }
 

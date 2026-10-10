@@ -18,15 +18,12 @@ export function obtenerSesion(): Sesion | null {
     return null;
   }
 }
-
 export function guardarSesion(sesion: Sesion) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sesion));
 }
-
 export function cerrarSesion() {
   localStorage.removeItem(STORAGE_KEY);
 }
-
 export async function iniciarSesion(usuario: string, password: string): Promise<Sesion> {
   const response = await fetch(apiUrl('/Auth/login'), {
     method: 'POST',

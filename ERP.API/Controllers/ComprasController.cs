@@ -87,6 +87,7 @@ public class ComprasController : ControllerBase
             SubTotal = subTotal,
             IGV = igv,
             Total = total,
+            Moneda = string.IsNullOrWhiteSpace(dto.Moneda) ? "PEN" : dto.Moneda!,
             Observacion = dto.Observacion,
             Estado = "REGISTRADO",
             Detalles = detalles

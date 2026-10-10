@@ -5,6 +5,16 @@
     <ProjectReference Include="..\ERP.Shared\ERP.Shared.csproj" />
   </ItemGroup>
 
+  <!--
+    Los archivos de Integraciones contienen controladores HTTP y acceso directo a
+    EF Core/Persistence. Aún no pertenecen a esta capa y no pueden compilar sin
+    romper la dirección de dependencias de la solución. Se conservan en el
+    repositorio, pero se excluyen hasta reubicarlos en API/Infrastructure.
+  -->
+  <ItemGroup>
+    <Compile Remove="LandedCost\Integraciones\**\*.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />

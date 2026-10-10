@@ -1,0 +1,44 @@
+/* Secciones (subgrupos) del menu lateral. Va junto a App.tsx (src/module-sections.css).
+   Usa los mismos .module-link ya existentes; solo agrega el encabezado de cada seccion. */
+
+.module-section {
+  display: flex;
+  flex-direction: column;
+  gap: inherit; /* misma separacion que ya tiene .module-nav entre botones */
+}
+
+.module-section + .module-section {
+  margin-top: 8px;
+}
+
+.module-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #9eb2cd;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+
+.module-section-title:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.module-section-title.has-active {
+  color: #ffffff;
+}
+
+.module-section-title small {
+  font-size: 0.8rem;
+  letter-spacing: 0;
+}

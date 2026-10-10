@@ -1,9 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿/*using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ERP.Domain.Entities
 {
-    [Table("AsientosContables")]
+    [Table("AsientoContable")]
     public class AsientoContable
     {
         [Key]
@@ -19,6 +19,30 @@ namespace ERP.Domain.Entities
         public decimal TotalDebe { get; set; }
         public decimal TotalHaber { get; set; }
         public bool Anulado { get; set; }
+        public virtual ICollection<AsientoDetalle> Detalles { get; set; }
+            = new List<AsientoDetalle>();
+        public int ReferenciaId { get; set; }
+    }
+}*/
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ERP.Domain.Entities
+{
+    [Table("AsientoContable")]
+    public class AsientoContable
+    {
+        [Key]
+        public int Id { get; set; }
+        public DateTime Fecha { get; set; }
+        [StringLength(30)]
+        public string TipoOperacion { get; set; } = "";
+        public int ReferenciaId { get; set; }
+        public string Glosa { get; set; } = "";
+        public decimal TotalDebe { get; set; }
+        public decimal TotalHaber { get; set; }
+        //public bool Anulado { get; set; }
         public virtual ICollection<AsientoDetalle> Detalles { get; set; }
             = new List<AsientoDetalle>();
     }

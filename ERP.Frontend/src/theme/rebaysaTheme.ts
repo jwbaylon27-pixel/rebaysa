@@ -5,9 +5,9 @@ import { createTheme } from "@mui/material/styles";
 const rebaysaTheme = createTheme({
   palette: {
     primary: {
-      main: "#12333a",
-      light: "#1c4750",
-      dark: "#0b2227",
+      main: "#2563eb",
+      light: "#4f83f1",
+      dark: "#1d4ed8",
       contrastText: "#ffffff",
     },
     secondary: {
@@ -23,7 +23,7 @@ const rebaysaTheme = createTheme({
       main: "#d64545",
     },
     background: {
-      default: "#f5f7f8",
+      default: "#f4f7fb",
       paper: "#ffffff",
     },
     text: {
@@ -32,18 +32,21 @@ const rebaysaTheme = createTheme({
     },
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 12,
   },
   typography: {
     fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
-    h5: { fontWeight: 700, letterSpacing: "-0.01em" },
-    h6: { fontWeight: 600 },
+    h5: { fontWeight: 800, letterSpacing: "-0.025em" },
+    h6: { fontWeight: 700, letterSpacing: "-0.015em" },
+    button: { fontWeight: 700 },
   },
   components: {
     MuiPaper: {
       styleOverrides: {
         root: {
           backgroundImage: "none",
+          border: "1px solid rgba(18, 51, 58, 0.08)",
+          boxShadow: "0 8px 24px rgba(18, 51, 58, 0.06)",
         },
       },
     },
@@ -51,8 +54,9 @@ const rebaysaTheme = createTheme({
       styleOverrides: {
         root: {
           textTransform: "none",
-          fontWeight: 600,
-          borderRadius: 7,
+          fontWeight: 700,
+          borderRadius: 9,
+          paddingInline: 16,
         },
       },
     },

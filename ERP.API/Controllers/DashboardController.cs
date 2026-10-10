@@ -1,4 +1,4 @@
-﻿using ERP.API.Dtos;
+using ERP.API.Dtos;
 using ERP.Domain.Entities;
 using ERP.Persistence.Context;
 using Microsoft.AspNetCore.Mvc;
@@ -40,8 +40,11 @@ public class DashboardController : ControllerBase
                 c.SubTotal,
                 c.IGV,
                 c.Total,
-                c.Estado
-            ))
+                c.Estado,
+                "compra",   // Tipo
+                null,       // MetodoPago: Compras no tiene esta columna
+                c.AsientoId
+             ))
             .ToListAsync();
 
         var ventas = await _context.Ventas
@@ -63,7 +66,10 @@ public class DashboardController : ControllerBase
                 v.SubTotal,
                 v.IGV,
                 v.Total,
-                v.Estado
+                v.Estado,
+                "venta",         // Tipo
+                v.MetodoPago,    // MetodoPago
+                v.AsientoId
             ))
             .ToListAsync();
 

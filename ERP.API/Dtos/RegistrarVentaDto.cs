@@ -1,4 +1,4 @@
-﻿namespace ERP.API.Dtos;
+namespace ERP.API.Dtos;
 
 public class RegistrarVentaDto
 {
@@ -9,6 +9,8 @@ public class RegistrarVentaDto
     public string Serie { get; set; } = string.Empty;
     public string NumeroDocumento { get; set; } = string.Empty;
     public string? MetodoPago { get; set; }
+    public string? Moneda { get; set; }
+    public int? DiasCredito { get; set; }
     public string? Observacion { get; set; }
     public List<RegistrarVentaDetalleDto> Detalles { get; set; } = new();
 }
